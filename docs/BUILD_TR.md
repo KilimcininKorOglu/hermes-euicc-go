@@ -91,7 +91,7 @@ cd app
 ./build-all.sh
 ```
 
-Çıktı dizini: ../build/
+Çıktı dizini: build/
 
 Oluşturulan binary'ler (toplam 8):
 
@@ -120,7 +120,7 @@ cd app
 ./build-openwrt.sh
 ```
 
-Çıktı dizini: ../build/openwrt/
+Çıktı dizini: build/openwrt/
 
 Özellikler:
 
@@ -310,7 +310,7 @@ file hermes-euicc-mipsle
 ### SHA256 Doğrula
 
 ```bash
-cd ../build
+cd build
 sha256sum -c SHA256SUMS
 ```
 

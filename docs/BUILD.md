@@ -91,7 +91,7 @@ cd app
 ./build-all.sh
 ```
 
-Output directory: ../build/
+Output directory: build/
 
 Binaries created (8 total):
 
@@ -120,7 +120,7 @@ cd app
 ./build-openwrt.sh
 ```
 
-Output directory: ../build/openwrt/
+Output directory: build/openwrt/
 
 Features:
 
@@ -310,7 +310,7 @@ file hermes-euicc-mipsle
 ### Verify SHA256
 
 ```bash
-cd ../build
+cd build
 sha256sum -c SHA256SUMS
 ```
 
