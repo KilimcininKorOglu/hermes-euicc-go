@@ -22,19 +22,19 @@ Bu uygulama **tüm driver'ları** içermektedir ve binary içinde derlenmiş ola
 ```bash
 # QMI Driver
 $ go tool nm hermes-euicc | grep "driver/qmi.New"
-575c80 t github.com/damonto/euicc-go/driver/qmi.New
+575c80 t github.com/KilimcininKorOglu/euicc-go/driver/qmi.New
 
 # MBIM Driver
 $ go tool nm hermes-euicc | grep "driver/mbim.New"
-56fa40 t github.com/damonto/euicc-go/driver/mbim.New
+56fa40 t github.com/KilimcininKorOglu/euicc-go/driver/mbim.New
 
 # AT Driver
 $ go tool nm hermes-euicc | grep "driver/at.New"
-5353a0 t github.com/damonto/euicc-go/driver/at.New
+5353a0 t github.com/KilimcininKorOglu/euicc-go/driver/at.New
 
 # CCID Driver
 $ go tool nm hermes-euicc | grep "driver/ccid.New"
-5432c0 t github.com/damonto/euicc-go/driver/ccid.New
+5432c0 t github.com/KilimcininKorOglu/euicc-go/driver/ccid.New
 ```
 
 **Toplam Driver Sembolleri:** 168 adet
@@ -43,7 +43,7 @@ $ go tool nm hermes-euicc | grep "driver/ccid.New"
 
 `main.go` dosyasında tüm driver'lar hem manuel seçim hem de otomatik tespit için kullanılmaktadır:
 
-#### Manuel Driver Seçimi (satır 167-200)
+#### Manuel Driver Seçimi
 
 ```go
 func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, error) {
@@ -61,7 +61,7 @@ func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, e
 }
 ```
 
-#### Otomatik Driver Tespiti (satır 203-250)
+#### Otomatik Driver Tespiti
 
 ```go
 func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
@@ -94,10 +94,10 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 
 ```go
 import (
-    "github.com/damonto/euicc-go/driver/qmi"    // ✅
-    "github.com/damonto/euicc-go/driver/mbim"   // ✅
-    "github.com/damonto/euicc-go/driver/at"     // ✅
-    "github.com/damonto/euicc-go/driver/ccid"   // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/qmi"    // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/mbim"   // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/at"     // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/ccid"   // ✅
 )
 ```
 

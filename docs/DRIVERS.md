@@ -22,19 +22,19 @@ This application includes **all drivers** compiled into the binary.
 ```bash
 # QMI Driver
 $ go tool nm hermes-euicc | grep "driver/qmi.New"
-575c80 t github.com/damonto/euicc-go/driver/qmi.New
+575c80 t github.com/KilimcininKorOglu/euicc-go/driver/qmi.New
 
 # MBIM Driver
 $ go tool nm hermes-euicc | grep "driver/mbim.New"
-56fa40 t github.com/damonto/euicc-go/driver/mbim.New
+56fa40 t github.com/KilimcininKorOglu/euicc-go/driver/mbim.New
 
 # AT Driver
 $ go tool nm hermes-euicc | grep "driver/at.New"
-5353a0 t github.com/damonto/euicc-go/driver/at.New
+5353a0 t github.com/KilimcininKorOglu/euicc-go/driver/at.New
 
 # CCID Driver
 $ go tool nm hermes-euicc | grep "driver/ccid.New"
-5432c0 t github.com/damonto/euicc-go/driver/ccid.New
+5432c0 t github.com/KilimcininKorOglu/euicc-go/driver/ccid.New
 ```
 
 **Total Driver Symbols:** 168
@@ -43,7 +43,7 @@ $ go tool nm hermes-euicc | grep "driver/ccid.New"
 
 All drivers are used in `main.go` for both manual selection and auto-detection:
 
-#### Manual Driver Selection (lines 167-200)
+#### Manual Driver Selection
 
 ```go
 func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, error) {
@@ -61,7 +61,7 @@ func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, e
 }
 ```
 
-#### Auto Driver Detection (lines 203-250)
+#### Auto Driver Detection
 
 ```go
 func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
@@ -94,10 +94,10 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 
 ```go
 import (
-    "github.com/damonto/euicc-go/driver/qmi"    // ✅
-    "github.com/damonto/euicc-go/driver/mbim"   // ✅
-    "github.com/damonto/euicc-go/driver/at"     // ✅
-    "github.com/damonto/euicc-go/driver/ccid"   // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/qmi"    // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/mbim"   // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/at"     // ✅
+    "github.com/KilimcininKorOglu/euicc-go/driver/ccid"   // ✅
 )
 ```
 
