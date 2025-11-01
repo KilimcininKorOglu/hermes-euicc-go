@@ -8,7 +8,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/damonto/euicc-go/apdu"
+	"github.com/KilimcininKorOglu/euicc-go/apdu"
 )
 
 func initCCIDDriver() (apdu.SmartCardChannel, error) {

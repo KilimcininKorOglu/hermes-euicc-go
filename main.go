@@ -14,12 +14,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/damonto/euicc-go/apdu"
-	"github.com/damonto/euicc-go/driver/at"
-	"github.com/damonto/euicc-go/driver/mbim"
-	"github.com/damonto/euicc-go/driver/qmi"
-	"github.com/damonto/euicc-go/lpa"
-	sgp22 "github.com/damonto/euicc-go/v2"
+	"github.com/KilimcininKorOglu/euicc-go/apdu"
+	"github.com/KilimcininKorOglu/euicc-go/driver/at"
+	"github.com/KilimcininKorOglu/euicc-go/driver/mbim"
+	"github.com/KilimcininKorOglu/euicc-go/driver/qmi"
+	"github.com/KilimcininKorOglu/euicc-go/lpa"
+	sgp22 "github.com/KilimcininKorOglu/euicc-go/v2"
 )
 
 // Response structures for JSON output
