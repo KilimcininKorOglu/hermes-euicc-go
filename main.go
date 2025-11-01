@@ -73,6 +73,27 @@ type ConfiguredAddressesResponse struct {
 	RootSMDSAddress    string `json:"root_smds_address,omitempty"`
 }
 
+type ProcessedNotification struct {
+	SequenceNumber int    `json:"sequence_number"`
+	ICCID          string `json:"iccid"`
+	Operation      int    `json:"operation"`
+}
+
+type FailedNotification struct {
+	SequenceNumber int    `json:"sequence_number"`
+	ICCID          string `json:"iccid"`
+	Error          string `json:"error"`
+}
+
+type AutoNotificationResponse struct {
+	Message       string                   `json:"message"`
+	Total         int                      `json:"total"`
+	Processed     int                      `json:"processed"`
+	Failed        int                      `json:"failed"`
+	ProcessedList []ProcessedNotification  `json:"processed_list"`
+	FailedList    []FailedNotification     `json:"failed_list"`
+}
+
 // Global flags
 var (
 	devicePath  = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
@@ -642,34 +663,38 @@ func handleAutoNotification(client *lpa.Client) {
 	}
 
 	if len(notificationList) == 0 {
-		outputSuccess(map[string]interface{}{
-			"message": "no pending notifications",
-			"count":   0,
+		outputSuccess(AutoNotificationResponse{
+			Message:       "no pending notifications",
+			Total:         0,
+			Processed:     0,
+			Failed:        0,
+			ProcessedList: []ProcessedNotification{},
+			FailedList:    []FailedNotification{},
 		})
 		return
 	}
 
 	// Process all notifications
-	var processed []map[string]interface{}
-	var failed []map[string]interface{}
+	processed := make([]ProcessedNotification, 0, len(notificationList))
+	failed := make([]FailedNotification, 0)
 
 	for _, metadata := range notificationList {
 		// Retrieve the actual notification using sequence number
 		notifications, err := client.RetrieveNotificationList(metadata.SequenceNumber)
 		if err != nil {
-			failed = append(failed, map[string]interface{}{
-				"sequence_number": int(metadata.SequenceNumber),
-				"iccid":           metadata.ICCID.String(),
-				"error":           err.Error(),
+			failed = append(failed, FailedNotification{
+				SequenceNumber: int(metadata.SequenceNumber),
+				ICCID:          metadata.ICCID.String(),
+				Error:          err.Error(),
 			})
 			continue
 		}
 
 		if len(notifications) == 0 {
-			failed = append(failed, map[string]interface{}{
-				"sequence_number": int(metadata.SequenceNumber),
-				"iccid":           metadata.ICCID.String(),
-				"error":           "notification not found",
+			failed = append(failed, FailedNotification{
+				SequenceNumber: int(metadata.SequenceNumber),
+				ICCID:          metadata.ICCID.String(),
+				Error:          "notification not found",
 			})
 			continue
 		}
@@ -677,27 +702,27 @@ func handleAutoNotification(client *lpa.Client) {
 		// Handle the notification
 		err = client.HandleNotification(notifications[0])
 		if err != nil {
-			failed = append(failed, map[string]interface{}{
-				"sequence_number": int(metadata.SequenceNumber),
-				"iccid":           metadata.ICCID.String(),
-				"error":           err.Error(),
+			failed = append(failed, FailedNotification{
+				SequenceNumber: int(metadata.SequenceNumber),
+				ICCID:          metadata.ICCID.String(),
+				Error:          err.Error(),
 			})
 		} else {
-			processed = append(processed, map[string]interface{}{
-				"sequence_number": int(metadata.SequenceNumber),
-				"iccid":           metadata.ICCID.String(),
-				"operation":       int(metadata.ProfileManagementOperation),
+			processed = append(processed, ProcessedNotification{
+				SequenceNumber: int(metadata.SequenceNumber),
+				ICCID:          metadata.ICCID.String(),
+				Operation:      int(metadata.ProfileManagementOperation),
 			})
 		}
 	}
 
-	outputSuccess(map[string]interface{}{
-		"message":        "auto notification processing completed",
-		"total":          len(notificationList),
-		"processed":      len(processed),
-		"failed":         len(failed),
-		"processed_list": processed,
-		"failed_list":    failed,
+	outputSuccess(AutoNotificationResponse{
+		Message:       "auto notification processing completed",
+		Total:         len(notificationList),
+		Processed:     len(processed),
+		Failed:        len(failed),
+		ProcessedList: processed,
+		FailedList:    failed,
 	})
 }
 
