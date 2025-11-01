@@ -23,7 +23,7 @@ echo -e "${NC}\n"
 # Yapılandırma
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
-BUILD_DIR="${SCRIPT_DIR}/../build"
+BUILD_DIR="${SCRIPT_DIR}/build"
 BINARY_NAME="hermes-euicc"
 
 # Build dizini oluştur

@@ -30,7 +30,7 @@ BINARY_NAME="hermes-euicc"
 # Determine source directory based on where script is run from
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
-BUILD_DIR="${SCRIPT_DIR}/../build/openwrt"
+BUILD_DIR="${SCRIPT_DIR}/build/openwrt"
 
 LDFLAGS="-ldflags=\"-s -w\""
 TRIMPATH="-trimpath"
