@@ -162,6 +162,8 @@ func main() {
 		handleNotificationRemove(client)
 	case "notification-handle":
 		handleNotificationHandle(client)
+	case "auto-notification":
+		handleAutoNotification(client)
 	case "configured-addresses":
 		handleConfiguredAddresses(client)
 	case "set-default-dp":
@@ -628,6 +630,74 @@ func handleNotificationHandle(client *lpa.Client) {
 	outputSuccess(map[string]interface{}{
 		"message":         "notification handled successfully",
 		"sequence_number": seqNum,
+	})
+}
+
+func handleAutoNotification(client *lpa.Client) {
+	// Retrieve all pending notifications metadata
+	notificationList, err := client.ListNotification()
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+
+	if len(notificationList) == 0 {
+		outputSuccess(map[string]interface{}{
+			"message": "no pending notifications",
+			"count":   0,
+		})
+		return
+	}
+
+	// Process all notifications
+	var processed []map[string]interface{}
+	var failed []map[string]interface{}
+
+	for _, metadata := range notificationList {
+		// Retrieve the actual notification using sequence number
+		notifications, err := client.RetrieveNotificationList(metadata.SequenceNumber)
+		if err != nil {
+			failed = append(failed, map[string]interface{}{
+				"sequence_number": int(metadata.SequenceNumber),
+				"iccid":           metadata.ICCID.String(),
+				"error":           err.Error(),
+			})
+			continue
+		}
+
+		if len(notifications) == 0 {
+			failed = append(failed, map[string]interface{}{
+				"sequence_number": int(metadata.SequenceNumber),
+				"iccid":           metadata.ICCID.String(),
+				"error":           "notification not found",
+			})
+			continue
+		}
+
+		// Handle the notification
+		err = client.HandleNotification(notifications[0])
+		if err != nil {
+			failed = append(failed, map[string]interface{}{
+				"sequence_number": int(metadata.SequenceNumber),
+				"iccid":           metadata.ICCID.String(),
+				"error":           err.Error(),
+			})
+		} else {
+			processed = append(processed, map[string]interface{}{
+				"sequence_number": int(metadata.SequenceNumber),
+				"iccid":           metadata.ICCID.String(),
+				"operation":       int(metadata.ProfileManagementOperation),
+			})
+		}
+	}
+
+	outputSuccess(map[string]interface{}{
+		"message":        "auto notification processing completed",
+		"total":          len(notificationList),
+		"processed":      len(processed),
+		"failed":         len(failed),
+		"processed_list": processed,
+		"failed_list":    failed,
 	})
 }
 
