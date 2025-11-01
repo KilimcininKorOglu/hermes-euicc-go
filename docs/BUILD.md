@@ -16,7 +16,7 @@ Comprehensive build instructions for all supported platforms and architectures.
 
 ### Required
 
-- **Go 1.21+**: Download from <https://go.dev/dl/>
+- **Go 1.24+**: Download from <https://go.dev/dl/>
 - **Git**: For cloning repository
 - **Linux**: Primary development platform
 
@@ -28,7 +28,7 @@ Comprehensive build instructions for all supported platforms and architectures.
 ### Verify Installation
 
 ```bash
-go version    # Should show go1.21 or later
+go version    # Should show go1.24 or later
 git --version
 make --version  # Optional
 upx --version   # Optional
@@ -270,7 +270,7 @@ Result: ~2.8 MB (57% reduction from 6.5 MB)
 
 ### "go: command not found"
 
-Install Go 1.21+:
+Install Go 1.24+:
 
 ```bash
 wget https://go.dev/dl/go1.23.5.linux-amd64.tar.gz

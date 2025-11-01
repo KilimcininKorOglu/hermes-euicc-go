@@ -16,7 +16,7 @@ Tüm desteklenen platformlar ve mimariler için kapsamlı build talimatları.
 
 ### Zorunlu
 
-- **Go 1.21+**: <https://go.dev/dl/> adresinden indirin
+- **Go 1.24+**: <https://go.dev/dl/> adresinden indirin
 - **Git**: Repository klonlamak için
 - **Linux**: Birincil geliştirme platformu
 
@@ -28,7 +28,7 @@ Tüm desteklenen platformlar ve mimariler için kapsamlı build talimatları.
 ### Kurulum Doğrulama
 
 ```bash
-go version    # go1.21 veya sonrası göstermeli
+go version    # go1.24 veya sonrası göstermeli
 git --version
 make --version  # Opsiyonel
 upx --version   # Opsiyonel
@@ -270,7 +270,7 @@ Sonuç: ~2.8 MB (6.5 MB'den %57 azalma)
 
 ### "go: command not found"
 
-Go 1.21+ kurun:
+Go 1.24+ kurun:
 
 ```bash
 wget https://go.dev/dl/go1.23.5.linux-amd64.tar.gz
