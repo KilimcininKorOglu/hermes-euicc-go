@@ -19,6 +19,7 @@ Complete documentation of JSON outputs for all commands in Hermes eUICC Manager.
   - [notifications](#notifications)
   - [notification-remove](#notification-remove)
   - [notification-handle](#notification-handle)
+  - [auto-notification](#auto-notification)
   - [configured-addresses](#configured-addresses)
   - [set-default-dp](#set-default-dp)
   - [challenge](#challenge)
@@ -819,6 +820,99 @@ All commands return JSON with the following structure:
 - Notification not found
 - Network/server errors
 - Card communication error
+
+---
+
+### auto-notification
+
+**Command:** `hermes-euicc auto-notification`
+
+**Description:** Automatically process all pending notifications concurrently
+
+**Success Response (with notifications):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "auto notification processing completed",
+    "total": 3,
+    "processed": 2,
+    "failed": 1,
+    "processed_list": [
+      {
+        "sequence_number": 1,
+        "iccid": "89012345678901234567",
+        "operation": 128
+      },
+      {
+        "sequence_number": 2,
+        "iccid": "89012345678901234568",
+        "operation": 129
+      }
+    ],
+    "failed_list": [
+      {
+        "sequence_number": 3,
+        "iccid": "89012345678901234569",
+        "error": "notification not found"
+      }
+    ]
+  }
+}
+```
+
+**Success Response (no notifications):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "message": "no pending notifications",
+    "total": 0,
+    "processed": 0,
+    "failed": 0,
+    "processed_list": [],
+    "failed_list": []
+  }
+}
+```
+
+**Fields:**
+
+- `message` (string): Status message
+- `total` (int): Total number of notifications found
+- `processed` (int): Number of successfully processed notifications
+- `failed` (int): Number of failed notifications
+- `processed_list` (array): Details of successfully processed notifications
+  - `sequence_number` (int): Notification sequence number
+  - `iccid` (string): Profile ICCID
+  - `operation` (int): Profile management operation type
+- `failed_list` (array): Details of failed notifications
+  - `sequence_number` (int): Notification sequence number
+  - `iccid` (string): Profile ICCID
+  - `error` (string): Error message
+
+**Error Response Examples:**
+
+```json
+{
+  "success": false,
+  "error": "failed to list notifications: network error"
+}
+```
+
+**Possible Errors:**
+
+- Network/server errors during notification listing
+- Card communication error
+
+**Notes:**
+
+- Processes all pending notifications concurrently for better performance
+- Returns detailed results for both successful and failed notifications
+- Useful for bulk notification processing after profile operations
+- Individual notification failures do not stop the processing of other notifications
 
 ---
 
