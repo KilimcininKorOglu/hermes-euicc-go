@@ -331,7 +331,7 @@ func handleList(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	var response []ProfileResponse
+	response := make([]ProfileResponse, 0, len(profiles))
 	for _, p := range profiles {
 		pr := ProfileResponse{
 			ICCID:               p.ICCID.String(),
@@ -534,7 +534,7 @@ func handleDiscovery(client *lpa.Client) {
 		servers = []string{*server}
 	}
 
-	var allEntries []DiscoveryResponse
+	allEntries := make([]DiscoveryResponse, 0, len(servers)*2)
 	for _, srv := range servers {
 		address := &url.URL{Scheme: "https", Host: srv}
 		entries, err := client.Discovery(address, imeiBytes)
@@ -563,7 +563,7 @@ func handleNotifications(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	var response []NotificationResponse
+	response := make([]NotificationResponse, 0, len(notifications))
 	for _, n := range notifications {
 		response = append(response, NotificationResponse{
 			SequenceNumber:             int(n.SequenceNumber),
