@@ -22,7 +22,7 @@ Hermes eUICC Manager is a command-line tool that provides complete control over 
 - JSON-only output for automation
 - Auto-detection of hardware drivers (QMI, MBIM, AT, CCID)
 - Complete SGP.22 protocol implementation
-- 16 commands covering all eSIM operations
+- 17 commands covering all eSIM operations
 - Cross-platform support (MIPS, ARM, x86)
 
 ## Installation
@@ -485,6 +485,63 @@ hermes-euicc notification-handle 1
 }
 ```
 
+### auto-notification - Automatically Process All Notifications
+
+Automatically retrieve and process all pending notifications concurrently. This command lists all pending notifications, retrieves each one, and handles them in parallel for optimal performance.
+
+```bash
+hermes-euicc auto-notification
+```
+
+**Output (with notifications):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 3,
+    "processed": 2,
+    "failed": 1,
+    "processed_notifications": [
+      {
+        "sequence_number": 1,
+        "profile_management_operation": "install"
+      },
+      {
+        "sequence_number": 2,
+        "profile_management_operation": "enable"
+      }
+    ],
+    "failed_notifications": [
+      {
+        "sequence_number": 3,
+        "error": "notification retrieve failed"
+      }
+    ]
+  }
+}
+```
+
+**Output (no notifications):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 0,
+    "processed": 0,
+    "failed": 0,
+    "processed_notifications": [],
+    "failed_notifications": []
+  }
+}
+```
+
+**Notes:**
+- Processes notifications concurrently for better performance
+- Returns detailed results for both successful and failed operations
+- Useful for automated batch processing of pending notifications
+
 ### configured-addresses - Get Configured Addresses
 
 Retrieve default SM-DP+ and root SM-DS addresses configured in eUICC.
@@ -891,7 +948,7 @@ start() {
 
 For issues, questions, or contributions:
 
-- GitHub Issues: <https://github.com/damonto/euicc-go/issues>
+- GitHub Issues: <https://github.com/KilimcininKorOglu/euicc-go/issues>
 - Documentation: See `/docs` directory in repository root
 
 ## License

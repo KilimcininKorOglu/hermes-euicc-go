@@ -22,7 +22,7 @@ Hermes eUICC Manager, eUICC özellikli modem ve cihazlarda eSIM profilleri üzer
 - Otomasyon için yalnızca JSON çıktısı
 - Donanım sürücülerinin otomatik tespiti (QMI, MBIM, AT, CCID)
 - Tam SGP.22 protokol implementasyonu
-- Tüm eSIM işlemlerini kapsayan 16 komut
+- Tüm eSIM işlemlerini kapsayan 17 komut
 - Çoklu platform desteği (MIPS, ARM, x86)
 
 ## Kurulum
@@ -485,6 +485,63 @@ hermes-euicc notification-handle 1
 }
 ```
 
+### auto-notification - Tüm Bildirimleri Otomatik İşle
+
+Bekleyen tüm bildirimleri otomatik olarak al ve eşzamanlı olarak işle. Bu komut tüm bekleyen bildirimleri listeler, her birini alır ve optimal performans için paralel olarak işler.
+
+```bash
+hermes-euicc auto-notification
+```
+
+**Çıktı (bildirimler var):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 3,
+    "processed": 2,
+    "failed": 1,
+    "processed_notifications": [
+      {
+        "sequence_number": 1,
+        "profile_management_operation": "install"
+      },
+      {
+        "sequence_number": 2,
+        "profile_management_operation": "enable"
+      }
+    ],
+    "failed_notifications": [
+      {
+        "sequence_number": 3,
+        "error": "notification retrieve failed"
+      }
+    ]
+  }
+}
+```
+
+**Çıktı (bildirim yok):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 0,
+    "processed": 0,
+    "failed": 0,
+    "processed_notifications": [],
+    "failed_notifications": []
+  }
+}
+```
+
+**Notlar:**
+- Daha iyi performans için bildirimleri eşzamanlı işler
+- Başarılı ve başarısız işlemler için detaylı sonuçlar döndürür
+- Bekleyen bildirimlerin otomatik toplu işlenmesi için kullanışlıdır
+
 ### configured-addresses - Yapılandırılmış Adresler
 
 eUICC'de yapılandırılmış varsayılan SM-DP+ ve root SM-DS adreslerini al.
@@ -891,7 +948,7 @@ start() {
 
 Sorunlar, sorular veya katkılar için:
 
-- GitHub Issues: <https://github.com/damonto/euicc-go/issues>
+- GitHub Issues: <https://github.com/KilimcininKorOglu/euicc-go/issues>
 - Dokümantasyon: Repository root'taki `/docs` dizinine bakın
 
 ## Lisans
