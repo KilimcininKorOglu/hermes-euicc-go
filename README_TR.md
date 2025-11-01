@@ -243,7 +243,44 @@ go build -o hermes-euicc
 ./hermes-euicc notification-handle 1
 ```
 
-#### 13. Yapılandırılmış Adresler
+#### 13. Otomatik Bildirim İşleme
+
+Bekleyen tüm bildirimleri otomatik olarak eşzamanlı işle.
+
+```bash
+./hermes-euicc auto-notification
+```
+
+**Çıktı:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 3,
+    "processed": 2,
+    "failed": 1,
+    "processed_notifications": [
+      {
+        "sequence_number": 1,
+        "profile_management_operation": "install"
+      },
+      {
+        "sequence_number": 2,
+        "profile_management_operation": "enable"
+      }
+    ],
+    "failed_notifications": [
+      {
+        "sequence_number": 3,
+        "error": "notification retrieve failed"
+      }
+    ]
+  }
+}
+```
+
+#### 14. Yapılandırılmış Adresler
 
 ```bash
 ./hermes-euicc configured-addresses
@@ -261,13 +298,13 @@ go build -o hermes-euicc
 }
 ```
 
-#### 14. Varsayılan SM-DP+ Adresi Ayarlama
+#### 15. Varsayılan SM-DP+ Adresi Ayarlama
 
 ```bash
 ./hermes-euicc set-default-dp "smdp.example.com"
 ```
 
-#### 15. eUICC Challenge
+#### 16. eUICC Challenge
 
 ```bash
 ./hermes-euicc challenge
@@ -284,7 +321,7 @@ go build -o hermes-euicc
 }
 ```
 
-#### 16. Bellek Sıfırlama
+#### 17. Bellek Sıfırlama
 
 ```bash
 ./hermes-euicc memory-reset
@@ -398,6 +435,17 @@ CODE=$(echo "$DISCOVERY" | jq -r '.data[0].address')
 ```
 
 ### Senaryo 3: Bildirim İşleme
+
+**Basit yaklaşım (önerilen):**
+
+```bash
+#!/bin/bash
+
+# Tüm bekleyen bildirimleri otomatik olarak eşzamanlı işle
+./hermes-euicc auto-notification
+```
+
+**Manuel yaklaşım:**
 
 ```bash
 #!/bin/bash

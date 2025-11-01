@@ -243,7 +243,44 @@ go build -o hermes-euicc
 ./hermes-euicc notification-handle 1
 ```
 
-#### 13. Configured Addresses
+#### 13. Auto-notification
+
+Automatically process all pending notifications concurrently.
+
+```bash
+./hermes-euicc auto-notification
+```
+
+**Output:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_notifications": 3,
+    "processed": 2,
+    "failed": 1,
+    "processed_notifications": [
+      {
+        "sequence_number": 1,
+        "profile_management_operation": "install"
+      },
+      {
+        "sequence_number": 2,
+        "profile_management_operation": "enable"
+      }
+    ],
+    "failed_notifications": [
+      {
+        "sequence_number": 3,
+        "error": "notification retrieve failed"
+      }
+    ]
+  }
+}
+```
+
+#### 14. Configured Addresses
 
 ```bash
 ./hermes-euicc configured-addresses
@@ -261,13 +298,13 @@ go build -o hermes-euicc
 }
 ```
 
-#### 14. Set Default SM-DP+ Address
+#### 15. Set Default SM-DP+ Address
 
 ```bash
 ./hermes-euicc set-default-dp "smdp.example.com"
 ```
 
-#### 15. eUICC Challenge
+#### 16. eUICC Challenge
 
 ```bash
 ./hermes-euicc challenge
@@ -284,7 +321,7 @@ go build -o hermes-euicc
 }
 ```
 
-#### 16. Memory Reset
+#### 17. Memory Reset
 
 ```bash
 ./hermes-euicc memory-reset
@@ -398,6 +435,17 @@ CODE=$(echo "$DISCOVERY" | jq -r '.data[0].address')
 ```
 
 ### Scenario 3: Notification Processing
+
+**Simple approach (recommended):**
+
+```bash
+#!/bin/bash
+
+# Automatically process all pending notifications concurrently
+./hermes-euicc auto-notification
+```
+
+**Manual approach:**
 
 ```bash
 #!/bin/bash
