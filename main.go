@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/KilimcininKorOglu/euicc-go/apdu"
@@ -674,47 +675,62 @@ func handleAutoNotification(client *lpa.Client) {
 		return
 	}
 
-	// Process all notifications
+	// Process all notifications concurrently
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	processed := make([]ProcessedNotification, 0, len(notificationList))
 	failed := make([]FailedNotification, 0)
 
 	for _, metadata := range notificationList {
-		// Retrieve the actual notification using sequence number
-		notifications, err := client.RetrieveNotificationList(metadata.SequenceNumber)
-		if err != nil {
-			failed = append(failed, FailedNotification{
-				SequenceNumber: int(metadata.SequenceNumber),
-				ICCID:          metadata.ICCID.String(),
-				Error:          err.Error(),
-			})
-			continue
-		}
+		wg.Add(1)
+		go func(meta *sgp22.NotificationMetadata) {
+			defer wg.Done()
 
-		if len(notifications) == 0 {
-			failed = append(failed, FailedNotification{
-				SequenceNumber: int(metadata.SequenceNumber),
-				ICCID:          metadata.ICCID.String(),
-				Error:          "notification not found",
-			})
-			continue
-		}
+			// Retrieve the actual notification using sequence number
+			notifications, err := client.RetrieveNotificationList(meta.SequenceNumber)
+			if err != nil {
+				mu.Lock()
+				failed = append(failed, FailedNotification{
+					SequenceNumber: int(meta.SequenceNumber),
+					ICCID:          meta.ICCID.String(),
+					Error:          err.Error(),
+				})
+				mu.Unlock()
+				return
+			}
 
-		// Handle the notification
-		err = client.HandleNotification(notifications[0])
-		if err != nil {
-			failed = append(failed, FailedNotification{
-				SequenceNumber: int(metadata.SequenceNumber),
-				ICCID:          metadata.ICCID.String(),
-				Error:          err.Error(),
-			})
-		} else {
-			processed = append(processed, ProcessedNotification{
-				SequenceNumber: int(metadata.SequenceNumber),
-				ICCID:          metadata.ICCID.String(),
-				Operation:      int(metadata.ProfileManagementOperation),
-			})
-		}
+			if len(notifications) == 0 {
+				mu.Lock()
+				failed = append(failed, FailedNotification{
+					SequenceNumber: int(meta.SequenceNumber),
+					ICCID:          meta.ICCID.String(),
+					Error:          "notification not found",
+				})
+				mu.Unlock()
+				return
+			}
+
+			// Handle the notification
+			err = client.HandleNotification(notifications[0])
+			mu.Lock()
+			if err != nil {
+				failed = append(failed, FailedNotification{
+					SequenceNumber: int(meta.SequenceNumber),
+					ICCID:          meta.ICCID.String(),
+					Error:          err.Error(),
+				})
+			} else {
+				processed = append(processed, ProcessedNotification{
+					SequenceNumber: int(meta.SequenceNumber),
+					ICCID:          meta.ICCID.String(),
+					Operation:      int(meta.ProfileManagementOperation),
+				})
+			}
+			mu.Unlock()
+		}(metadata)
 	}
+
+	wg.Wait()
 
 	outputSuccess(AutoNotificationResponse{
 		Message:       "auto notification processing completed",
