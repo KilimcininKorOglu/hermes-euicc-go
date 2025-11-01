@@ -556,24 +556,37 @@ func handleDiscovery(client *lpa.Client) {
 		servers = []string{*server}
 	}
 
+	// Query all servers concurrently
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	allEntries := make([]DiscoveryResponse, 0, len(servers)*2)
-	for _, srv := range servers {
-		address := &url.URL{Scheme: "https", Host: srv}
-		entries, err := client.Discovery(address, imeiBytes)
-		if err != nil {
-			if *verbose {
-				log.Printf("Discovery failed for %s: %v\n", srv, err)
-			}
-			continue
-		}
 
-		for _, entry := range entries {
-			allEntries = append(allEntries, DiscoveryResponse{
-				EventID: entry.EventID,
-				Address: entry.Address,
-			})
-		}
+	for _, srv := range servers {
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+
+			address := &url.URL{Scheme: "https", Host: server}
+			entries, err := client.Discovery(address, imeiBytes)
+			if err != nil {
+				if *verbose {
+					log.Printf("Discovery failed for %s: %v\n", server, err)
+				}
+				return
+			}
+
+			mu.Lock()
+			for _, entry := range entries {
+				allEntries = append(allEntries, DiscoveryResponse{
+					EventID: entry.EventID,
+					Address: entry.Address,
+				})
+			}
+			mu.Unlock()
+		}(srv)
 	}
+
+	wg.Wait()
 
 	outputSuccess(allEntries)
 }
