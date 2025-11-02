@@ -1,7 +1,5 @@
 # Hermes eUICC Manager
 
-Copyright (c) 2025 Kilimcinin Kör Oğlu <k@keremgok.tr>
-
 **Hermes** - Full-featured eUICC (eSIM) management CLI application with JSON output.
 
 ## Features
