@@ -10,10 +10,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/KilimcininKorOglu/euicc-go/apdu"
@@ -134,6 +132,7 @@ func main() {
 		"nickname":              true,
 		"download":              true,
 		"discovery":             true,
+		"discover-download":     true,
 		"notifications":         true,
 		"notification-remove":   true,
 		"notification-handle":   true,
@@ -179,6 +178,8 @@ func main() {
 		handleDownload(client)
 	case "discovery":
 		handleDiscovery(client)
+	case "discover-download":
+		handleDiscoverDownload(client)
 	case "notifications":
 		handleNotifications(client)
 	case "notification-remove":
@@ -535,63 +536,100 @@ func handleDownload(client *lpa.Client) {
 
 func handleDiscovery(client *lpa.Client) {
 	var (
-		server = flag.String("server", "", "SM-DS server URL (default: lpa.ds.gsma.com)")
-		imei   = flag.String("imei", "", "IMEI")
+		server = flag.String("server", "", "SM-DS server address (default: lpa.ds.gsma.com)")
+		imei   = flag.String("imei", "", "IMEI for authentication")
 	)
 
 	discoveryFlags := flag.NewFlagSet("discovery", flag.ExitOnError)
-	discoveryFlags.StringVar(server, "server", "", "SM-DS server")
+	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
 	discoveryFlags.StringVar(imei, "imei", "", "IMEI")
 	discoveryFlags.Parse(flag.Args()[1:])
 
-	var imeiBytes sgp22.IMEI
+	// Prepare discovery options
+	opts := &lpa.DiscoverProfilesOptions{}
+
+	// Set SM-DS address if provided
+	if *server != "" {
+		opts.SMDSAddress = *server
+	}
+
+	// Set IMEI if provided
 	if *imei != "" {
-		var err error
-		imeiBytes, err = sgp22.NewIMEI(*imei)
+		imeiBytes, err := sgp22.NewIMEI(*imei)
 		if err != nil {
 			outputError(fmt.Errorf("invalid IMEI: %w", err))
 			os.Exit(1)
 		}
+		opts.IMEI = imeiBytes
 	}
 
-	servers := []string{"lpa.ds.gsma.com", "lpa.live.esimdiscovery.com"}
+	// Use library's DiscoverProfiles function
+	profiles, err := client.DiscoverProfiles(opts)
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+
+	// Convert to response format
+	response := make([]DiscoveryResponse, len(profiles))
+	for i, profile := range profiles {
+		response[i] = DiscoveryResponse{
+			EventID: profile.EventID,
+			Address: profile.SMDPAddress,
+		}
+	}
+
+	outputSuccess(response)
+}
+
+func handleDiscoverDownload(client *lpa.Client) {
+	var (
+		server = flag.String("server", "", "SM-DS server address (default: lpa.ds.gsma.com)")
+		imei   = flag.String("imei", "", "IMEI for authentication")
+	)
+
+	discoveryFlags := flag.NewFlagSet("discover-download", flag.ExitOnError)
+	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
+	discoveryFlags.StringVar(imei, "imei", "", "IMEI")
+	discoveryFlags.Parse(flag.Args()[1:])
+
+	// Prepare discovery options
+	discoveryOpts := &lpa.DiscoverProfilesOptions{}
+
+	// Set SM-DS address if provided
 	if *server != "" {
-		servers = []string{*server}
+		discoveryOpts.SMDSAddress = *server
 	}
 
-	// Query all servers concurrently
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	allEntries := make([]DiscoveryResponse, 0, len(servers)*2)
-
-	for _, srv := range servers {
-		wg.Add(1)
-		go func(server string) {
-			defer wg.Done()
-
-			address := &url.URL{Scheme: "https", Host: server}
-			entries, err := client.Discovery(address, imeiBytes)
-			if err != nil {
-				if *verbose {
-					log.Printf("Discovery failed for %s: %v\n", server, err)
-				}
-				return
-			}
-
-			mu.Lock()
-			for _, entry := range entries {
-				allEntries = append(allEntries, DiscoveryResponse{
-					EventID: entry.EventID,
-					Address: entry.Address,
-				})
-			}
-			mu.Unlock()
-		}(srv)
+	// Set IMEI if provided
+	if *imei != "" {
+		imeiBytes, err := sgp22.NewIMEI(*imei)
+		if err != nil {
+			outputError(fmt.Errorf("invalid IMEI: %w", err))
+			os.Exit(1)
+		}
+		discoveryOpts.IMEI = imeiBytes
 	}
 
-	wg.Wait()
+	// Use library's DiscoverAndDownload function
+	ctx := context.Background()
+	result, err := client.DiscoverAndDownload(ctx, discoveryOpts, nil)
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
 
-	outputSuccess(allEntries)
+	// Check if a profile was downloaded
+	if result == nil {
+		outputSuccess(map[string]interface{}{
+			"message": "no profiles available for download",
+		})
+		return
+	}
+
+	outputSuccess(map[string]interface{}{
+		"message": "profile downloaded successfully",
+	})
 }
 
 func handleNotifications(client *lpa.Client) {
@@ -878,6 +916,7 @@ Commands:
   nickname <iccid> <nickname>   Set profile nickname
   download                      Download profile (use --code, --imei, --confirmation-code, --confirm)
   discovery                     Discover profiles from SM-DS (use --server, --imei)
+  discover-download             Discover and download first available profile (use --server, --imei)
   notifications                 List notifications
   notification-remove <seq>     Remove notification by sequence number
   notification-handle <seq>     Handle notification by sequence number
