@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# OpenWRT Popüler Cihazlar İçin eUICC Go Derleme Script'i
-# En yaygın kullanılan router mimarileri için optimize edilmiş
+# Hermes eUICC Manager - OpenWRT Popular Devices Build Script
+# Optimized for the most common router architectures
 
-set -e  # Hata durumunda dur
+set -e  # Exit on error
 
-# Renkli çıktı
+# Colored output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -19,12 +19,12 @@ echo -e "${BLUE}"
 cat << 'EOF'
 ╔════════════════════════════════════════════════════════════╗
 ║  Hermes eUICC Manager - OpenWRT Popular Devices Build     ║
-║              En Yaygın Router Mimarileri                   ║
+║            Most Common Router Architectures                ║
 ╚════════════════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}\n"
 
-# Yapılandırma
+# Configuration
 BINARY_NAME="hermes-euicc"
 
 # Determine source directory based on where script is run from
@@ -35,10 +35,10 @@ BUILD_DIR="${SCRIPT_DIR}/build/openwrt"
 LDFLAGS="-ldflags=\"-s -w\""
 TRIMPATH="-trimpath"
 
-# Build dizini oluştur
+# Create build directory
 mkdir -p ${BUILD_DIR}
 
-# Derleme fonksiyonu
+# Build function
 build_for_device() {
     local DEVICE_NAME=$1
     local GOOS=$2
@@ -46,19 +46,19 @@ build_for_device() {
     local GOARM=$4
     local OUTPUT=$5
     local DESCRIPTION=$6
-    local OPT_FLAGS=$7  # Yeni: Optimizasyon flagleri (GOMIPS/GOAMD64/etc)
+    local OPT_FLAGS=$7  # Optimization flags (GOMIPS/GOAMD64/etc)
 
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${MAGENTA}📱 Cihaz:${NC}     ${DEVICE_NAME}"
+    echo -e "${MAGENTA}📱 Device:${NC}    ${DEVICE_NAME}"
     echo -e "${BLUE}📦 Platform:${NC}  ${DESCRIPTION}"
     echo -e "${YELLOW}💾 Output:${NC}    ${BUILD_DIR}/${OUTPUT}"
 
-    # Optimizasyon bilgisini göster
+    # Show optimization info
     if [ -n "$OPT_FLAGS" ]; then
         echo -e "${GREEN}⚡ Optimize:${NC}  ${OPT_FLAGS}"
     fi
 
-    # Derleme - optimizasyon flagleriyle
+    # Build with optimization flags
     # Export optimization flags if present
     if [ -n "$OPT_FLAGS" ]; then
         export $OPT_FLAGS
@@ -85,37 +85,37 @@ build_for_device() {
 
     if [ $? -eq 0 ] && [ -f "${BUILD_DIR}/${OUTPUT}" ]; then
         SIZE=$(ls -lh "${BUILD_DIR}/${OUTPUT}" | awk '{print $5}')
-        echo -e "${GREEN}✓ Başarılı!${NC} Boyut: ${SIZE}"
+        echo -e "${GREEN}✓ Success!${NC} Size: ${SIZE}"
 
-        # UPX ile sıkıştır (varsa)
+        # Compress with UPX (if available)
         if command -v upx &> /dev/null; then
-            echo -e "${YELLOW}  ⚡ UPX ile sıkıştırılıyor...${NC}"
+            echo -e "${YELLOW}  ⚡ Compressing with UPX...${NC}"
             upx --best --lzma "${BUILD_DIR}/${OUTPUT}" >/dev/null 2>&1 && {
                 SIZE_AFTER=$(ls -lh "${BUILD_DIR}/${OUTPUT}" | awk '{print $5}')
-                echo -e "${GREEN}  ✓ Sıkıştırıldı!${NC} Yeni boyut: ${SIZE_AFTER}"
+                echo -e "${GREEN}  ✓ Compressed!${NC} New size: ${SIZE_AFTER}"
             } || {
-                echo -e "${YELLOW}  ⚠ UPX sıkıştırma atlandı${NC}"
+                echo -e "${YELLOW}  ⚠ UPX compression skipped${NC}"
             }
         fi
         echo ""
     else
-        echo -e "${RED}✗ Derleme başarısız!${NC}\n"
+        echo -e "${RED}✗ Build failed!${NC}\n"
         return 1
     fi
 }
 
-# Ana derleme süreci
-echo -e "${BLUE}📁 Kaynak Dizin:${NC} ${SOURCE_DIR}"
-echo -e "${BLUE}📁 Hedef Dizin:${NC}  ${BUILD_DIR}\n"
+# Main build process
+echo -e "${BLUE}📁 Source Directory:${NC} ${SOURCE_DIR}"
+echo -e "${BLUE}📁 Build Directory:${NC}  ${BUILD_DIR}\n"
 
 # =============================================================================
-# MIPS Cihazlar (En Yaygın OpenWRT Cihazları)
+# MIPS Devices (Most Common OpenWRT Devices)
 # =============================================================================
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║              MIPS Tabanlı Cihazlar (En Yaygın)            ║${NC}"
+echo -e "${GREEN}║           MIPS-Based Devices (Most Common)                 ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# GL.iNet Serisi (QCA9563 MIPS 74Kc - FPU var)
+# GL.iNet Series (QCA9563 MIPS 74Kc - Has FPU)
 build_for_device "GL.iNet GL-AR750S (Slate)" "linux" "mipsle" "" \
     "${BINARY_NAME}-glinet-ar750s" \
     "MIPS LE (GL.iNet AR750S, AR300M, MT300N-V2)" \
@@ -166,26 +166,26 @@ build_for_device "TP-Link Archer C6" "linux" "mipsle" "" \
     "MIPS LE (TP-Link Archer C6, budget-friendly)" \
     "GOMIPS=softfloat"
 
-# TP-Link WR841N (AR9341 MIPS 24Kc - FPU YOK!)
+# TP-Link WR841N (AR9341 MIPS 24Kc - NO FPU!)
 build_for_device "TP-Link TL-WR841N" "linux" "mipsle" "" \
     "${BINARY_NAME}-tplink-wr841n" \
     "MIPS LE (TP-Link TL-WR841N, world's best-selling budget router)" \
     "GOMIPS=softfloat"
 
-# GL.iNet 4G LTE Serisi (QCA9531 MIPS 24Kc - FPU YOK!)
+# GL.iNet 4G LTE Series (QCA9531 MIPS 24Kc - NO FPU!)
 build_for_device "GL.iNet GL-XE300 (Puli)" "linux" "mipsle" "" \
     "${BINARY_NAME}-glinet-xe300" \
     "MIPS LE (GL.iNet XE300 Puli, 4G LTE, 5000mAh battery)" \
     "GOMIPS=softfloat"
 
 # =============================================================================
-# ARM Cihazlar (Modern ve Popüler)
+# ARM Devices (Modern and Popular)
 # =============================================================================
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║             ARM Tabanlı Cihazlar (Modern)                  ║${NC}"
+echo -e "${GREEN}║              ARM-Based Devices (Modern)                    ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# GL.iNet ARM Serisi (Qualcomm IPQ4018 Cortex-A7 + NEON)
+# GL.iNet ARM Series (Qualcomm IPQ4018 Cortex-A7 + NEON)
 build_for_device "GL.iNet GL-B1300 (Convexa-B)" "linux" "arm" "7" \
     "${BINARY_NAME}-glinet-b1300" \
     "ARMv7 (GL.iNet B1300, S1300)" \
@@ -196,7 +196,7 @@ build_for_device "GL.iNet GL-AX1800 (Flint)" "linux" "arm64" "" \
     "ARM64 (GL.iNet AX1800, AXT1800)" \
     ""
 
-# Raspberry Pi Serisi (Cortex-A53/A72/A76)
+# Raspberry Pi Series (Cortex-A53/A72/A76)
 build_for_device "Raspberry Pi 2 Model B" "linux" "arm" "7" \
     "${BINARY_NAME}-rpi2" \
     "ARMv7 (Raspberry Pi 2, 3)" \
@@ -217,13 +217,13 @@ build_for_device "Raspberry Pi 5" "linux" "arm64" "" \
     "ARM64 (Raspberry Pi 5)" \
     ""
 
-# Linksys ARM Serisi (Marvell Armada 385 Cortex-A9)
+# Linksys ARM Series (Marvell Armada 385 Cortex-A9)
 build_for_device "Linksys WRT1900ACS/WRT3200ACM" "linux" "arm" "7" \
     "${BINARY_NAME}-linksys-wrt1900" \
-    "ARMv7 (Linksys WRT serisi)" \
+    "ARMv7 (Linksys WRT series)" \
     ""
 
-# NanoPi Serisi (Rockchip RK3328/RK3399 Cortex-A53/A72)
+# NanoPi Series (Rockchip RK3328/RK3399 Cortex-A53/A72)
 build_for_device "NanoPi R2S" "linux" "arm64" "" \
     "${BINARY_NAME}-nanopi-r2s" \
     "ARM64 (NanoPi R2S, R4S, R5S)" \
@@ -234,7 +234,7 @@ build_for_device "NanoPi R4S" "linux" "arm64" "" \
     "ARM64 (NanoPi R4S - RK3399)" \
     ""
 
-# GL.iNet WiFi 6/7 Flagship Serisi (MediaTek Filogic Cortex-A53)
+# GL.iNet WiFi 6/7 Flagship Series (MediaTek Filogic Cortex-A53)
 build_for_device "GL.iNet GL-MT6000 (Flint 2)" "linux" "arm64" "" \
     "${BINARY_NAME}-glinet-mt6000" \
     "ARM64 (GL.iNet MT6000 Flint 2, WiFi 6, MediaTek MT7986, 2025 flagship)" \
@@ -250,7 +250,7 @@ build_for_device "GL.iNet Slate 7" "linux" "arm64" "" \
     "ARM64 (GL.iNet Slate 7, WiFi 7 flagship, touchscreen)" \
     ""
 
-# Linksys WiFi 6 Serisi (MediaTek MT7622 Cortex-A53)
+# Linksys WiFi 6 Series (MediaTek MT7622 Cortex-A53)
 build_for_device "Linksys E8450" "linux" "arm" "7" \
     "${BINARY_NAME}-linksys-e8450" \
     "ARMv7 (Linksys E8450, WiFi 6, MediaTek Filogic, 3.2 Gbps)" \
@@ -283,7 +283,7 @@ build_for_device "Dynalink DL-WRX36" "linux" "arm" "7" \
     "ARMv7 (Dynalink DL-WRX36, WiFi 6 AX3600, Qualcomm IPQ8072A)" \
     ""
 
-# Cudy WiFi 6 Serisi (MediaTek MT7981B Cortex-A53)
+# Cudy WiFi 6 Series (MediaTek MT7981B Cortex-A53)
 build_for_device "Cudy WR3000" "linux" "arm64" "" \
     "${BINARY_NAME}-cudy-wr3000" \
     "ARM64 (Cudy WR3000, WiFi 6 AX3000, MediaTek MT7981B, budget)" \
@@ -294,7 +294,7 @@ build_for_device "Cudy P5 5G" "linux" "arm64" "" \
     "ARM64 (Cudy P5, WiFi 6 + 5G modem, unique feature)" \
     ""
 
-# MikroTik Enterprise Serisi (Qualcomm IPQ4019 Cortex-A7 / Marvell Cortex-A72)
+# MikroTik Enterprise Series (Qualcomm IPQ4019 Cortex-A7 / Marvell Cortex-A72)
 build_for_device "MikroTik hAP ac2" "linux" "arm" "7" \
     "${BINARY_NAME}-mikrotik-hap-ac2" \
     "ARMv7 (MikroTik hAP ac2, Qualcomm IPQ4019, enterprise)" \
@@ -311,25 +311,25 @@ build_for_device "MikroTik RB5009" "linux" "arm64" "" \
     ""
 
 # =============================================================================
-# x86 Cihazlar (PC/Server Tabanlı)
+# x86 Devices (PC/Server Based)
 # =============================================================================
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║            x86 Tabanlı Cihazlar (PC/Server)                ║${NC}"
+echo -e "${GREEN}║             x86-Based Devices (PC/Server)                  ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# PC Engines Serisi (AMD GX-412TC - 2013, Jaguar architecture)
+# PC Engines Series (AMD GX-412TC - 2013, Jaguar architecture)
 build_for_device "PC Engines APU2/APU3/APU4" "linux" "amd64" "" \
     "${BINARY_NAME}-pcengines-apu" \
-    "x86-64 (PC Engines APU serisi)" \
+    "x86-64 (PC Engines APU series)" \
     "GOAMD64=v2"
 
-# Protectli Serisi (Modern Intel - Haswell+)
+# Protectli Series (Modern Intel - Haswell+)
 build_for_device "Protectli Vault FW4B/FW6" "linux" "amd64" "" \
     "${BINARY_NAME}-protectli-vault" \
-    "x86-64 (Protectli Vault serisi)" \
+    "x86-64 (Protectli Vault series)" \
     "GOAMD64=v3"
 
-# Genel x86 (Maksimum uyumluluk)
+# Generic x86 (Maximum compatibility)
 build_for_device "Generic x86-64 (64-bit)" "linux" "amd64" "" \
     "${BINARY_NAME}-x86-64" \
     "x86-64 (Generic 64-bit PC)" \
@@ -353,24 +353,24 @@ build_for_device "Minisforum MS-01" "linux" "amd64" "" \
     "GOAMD64=v3"
 
 # =============================================================================
-# Özet ve Bilgilendirme
+# Summary and Information
 # =============================================================================
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                  Derleme Tamamlandı!                       ║${NC}"
+echo -e "${GREEN}║                   Build Completed!                         ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# Binary listesi
-echo -e "${BLUE}📦 Oluşturulan Binary'ler:${NC}\n"
+# Binary list
+echo -e "${BLUE}📦 Generated Binaries:${NC}\n"
 if ls ${BUILD_DIR}/${BINARY_NAME}-* >/dev/null 2>&1; then
-    echo -e "${CYAN}Cihaz Modeli                              Boyut      Dosya${NC}"
+    echo -e "${CYAN}Device Model                              Size       File${NC}"
     echo -e "${CYAN}────────────────────────────────────────────────────────────${NC}"
     ls -lh ${BUILD_DIR}/${BINARY_NAME}-* | awk '{
-        # Dosya adından cihaz adını çıkar
+        # Extract device name from filename
         split($9, parts, "/");
         filename = parts[length(parts)];
         gsub("hermes-euicc-", "", filename);
 
-        # Cihaz adlarını düzelt
+        # Fix device names
         # MIPS devices
         if (filename ~ /glinet-ar750s/) name = "GL.iNet AR750S";
         else if (filename ~ /glinet-mt300n/) name = "GL.iNet MT300N-V2";
@@ -419,43 +419,43 @@ if ls ${BUILD_DIR}/${BINARY_NAME}-* >/dev/null 2>&1; then
         printf "%-40s %9s  %s\n", name, $5, filename;
     }'
 
-    # SHA256 checksum oluştur
-    echo -e "\n${YELLOW}⚡ SHA256 checksum'lar oluşturuluyor...${NC}"
+    # Generate SHA256 checksums
+    echo -e "\n${YELLOW}⚡ Generating SHA256 checksums...${NC}"
     cd ${BUILD_DIR} && sha256sum ${BINARY_NAME}-* > SHA256SUMS 2>/dev/null
     cd - >/dev/null
-    echo -e "${GREEN}✓ Checksum dosyası:${NC} ${BUILD_DIR}/SHA256SUMS"
+    echo -e "${GREEN}✓ Checksum file:${NC} ${BUILD_DIR}/SHA256SUMS"
 
-    # Toplam boyut
+    # Total size
     TOTAL_SIZE=$(du -sh ${BUILD_DIR} | awk '{print $1}')
-    echo -e "\n${BLUE}📊 Toplam Boyut:${NC} ${TOTAL_SIZE}"
+    echo -e "\n${BLUE}📊 Total Size:${NC} ${TOTAL_SIZE}"
 else
-    echo -e "${RED}Hiç binary oluşturulamadı!${NC}"
+    echo -e "${RED}No binaries were created!${NC}"
 fi
 
-# Kullanım talimatları
+# Usage instructions
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                   Kullanım Talimatları                     ║${NC}"
+echo -e "${GREEN}║                   Usage Instructions                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
 cat << 'INSTRUCTIONS'
-Router'a Yükleme:
-  1. Cihazınıza uygun binary'yi seçin
-  2. Router'a kopyalayın:
+Installing on Router:
+  1. Select the appropriate binary for your device
+  2. Copy to router:
      scp build/openwrt/hermes-euicc-XXXX root@192.168.1.1:/usr/bin/hermes-euicc
 
-  3. Çalıştırılabilir yapın:
+  3. Make executable:
      ssh root@192.168.1.1 "chmod +x /usr/bin/hermes-euicc"
 
-  4. Kullanın!
+  4. Use it!
      hermes-euicc list
      hermes-euicc eid
 
-Daha Fazla Bilgi:
+More Information:
   - OPENWRT_INTEGRATION.md: UCI, init scripts, CLI wrapper
-  - QUICK_START.md: Hızlı başlangıç rehberi
-  - USAGE.md: Kapsamlı kullanım kılavuzu (Türkçe)
+  - QUICK_START.md: Quick start guide
+  - USAGE.md: Comprehensive usage guide
 
 INSTRUCTIONS
 
-echo -e "${YELLOW}💡 İpucu:${NC} UPX kurulu değilse: ${CYAN}sudo apt install upx${NC}"
-echo -e "${YELLOW}💡 İpucu:${NC} Checksum doğrulama: ${CYAN}sha256sum -c ${BUILD_DIR}/SHA256SUMS${NC}\n"
+echo -e "${YELLOW}💡 Tip:${NC} If UPX is not installed: ${CYAN}sudo apt install upx${NC}"
+echo -e "${YELLOW}💡 Tip:${NC} Checksum verification: ${CYAN}sha256sum -c ${BUILD_DIR}/SHA256SUMS${NC}\n"
