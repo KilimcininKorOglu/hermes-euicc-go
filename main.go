@@ -92,6 +92,64 @@ type AutoNotificationResponse struct {
 	FailedList    []FailedNotification     `json:"failed_list"`
 }
 
+type ChipInfoResponse struct {
+	EID                     string                       `json:"eid"`
+	ConfiguredAddresses     *ConfiguredAddressesResponse `json:"configured_addresses,omitempty"`
+	Info2                   *EUICCInfo2Response          `json:"euicc_info2,omitempty"`
+	RulesAuthorisationTable []RATResponse                `json:"rules_authorisation_table,omitempty"`
+}
+
+type EUICCInfo2Response struct {
+	// Version Information
+	ProfileVersion        string `json:"profile_version,omitempty"`
+	SVN                   string `json:"svn,omitempty"`
+	EUICCFirmwareVer      string `json:"euicc_firmware_ver,omitempty"`
+	TS102241Version       string `json:"ts102241_version,omitempty"`
+	GlobalPlatformVersion string `json:"global_platform_version,omitempty"`
+	PPVersion             string `json:"pp_version,omitempty"`
+
+	// Memory/Storage Information
+	ExtCardResource ExtCardResourceResponse `json:"ext_card_resource"`
+
+	// Capabilities
+	UICCCapability []string `json:"uicc_capability,omitempty"`
+	RSPCapability  []string `json:"rsp_capability,omitempty"`
+
+	// Security
+	EUICCCiPKIdListForVerification []string `json:"euicc_ci_pkid_list_for_verification,omitempty"`
+	EUICCCiPKIdListForSigning      []string `json:"euicc_ci_pkid_list_for_signing,omitempty"`
+	ForbiddenProfilePolicyRules    []string `json:"forbidden_profile_policy_rules,omitempty"`
+
+	// Classification
+	EUICCCategory string `json:"euicc_category,omitempty"`
+
+	// Certification
+	SASAccreditationNumber string                          `json:"sas_accreditation_number,omitempty"`
+	CertificationDataObject CertificationDataObjectResponse `json:"certification_data_object,omitempty"`
+}
+
+type ExtCardResourceResponse struct {
+	InstalledApplication  uint32 `json:"installed_application"`
+	FreeNonVolatileMemory uint32 `json:"free_non_volatile_memory"`
+	FreeVolatileMemory    uint32 `json:"free_volatile_memory"`
+}
+
+type CertificationDataObjectResponse struct {
+	PlatformLabel    string `json:"platform_label,omitempty"`
+	DiscoveryBaseURL string `json:"discovery_base_url,omitempty"`
+}
+
+type RATResponse struct {
+	PPRIds           []string                  `json:"ppr_ids,omitempty"`
+	AllowedOperators []AllowedOperatorResponse `json:"allowed_operators,omitempty"`
+}
+
+type AllowedOperatorResponse struct {
+	PLMN string `json:"plmn,omitempty"`
+	GID1 string `json:"gid1,omitempty"`
+	GID2 string `json:"gid2,omitempty"`
+}
+
 // Global flags
 var (
 	devicePath  = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
@@ -125,6 +183,7 @@ func main() {
 	validCommands := map[string]bool{
 		"eid":                   true,
 		"info":                  true,
+		"chip-info":             true,
 		"list":                  true,
 		"enable":                true,
 		"disable":               true,
@@ -164,6 +223,8 @@ func main() {
 		handleEID(client)
 	case "info":
 		handleInfo(client)
+	case "chip-info":
+		handleChipInfo(client)
 	case "list":
 		handleList(client)
 	case "enable":
@@ -348,6 +409,81 @@ func handleInfo(client *lpa.Client) {
 		EUICCInfo1: hex.EncodeToString(info1.Bytes()),
 		EUICCInfo2: hex.EncodeToString(info2.Bytes()),
 	})
+}
+
+func handleChipInfo(client *lpa.Client) {
+	// Get chip info using library's ChipInfo function
+	chipInfo, err := client.ChipInfo()
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+
+	// Build response
+	response := ChipInfoResponse{
+		EID: chipInfo.EID,
+	}
+
+	// Add configured addresses if available
+	if chipInfo.ConfiguredAddresses != nil {
+		response.ConfiguredAddresses = &ConfiguredAddressesResponse{
+			DefaultSMDPAddress: chipInfo.ConfiguredAddresses.DefaultSMDPAddress,
+			RootSMDSAddress:    chipInfo.ConfiguredAddresses.RootSMDSAddress,
+		}
+	}
+
+	// Add Info2 if available
+	if chipInfo.Info2 != nil {
+		response.Info2 = &EUICCInfo2Response{
+			ProfileVersion:        chipInfo.Info2.ProfileVersion,
+			SVN:                   chipInfo.Info2.SVN,
+			EUICCFirmwareVer:      chipInfo.Info2.EUICCFirmwareVer,
+			TS102241Version:       chipInfo.Info2.TS102241Version,
+			GlobalPlatformVersion: chipInfo.Info2.GlobalPlatformVersion,
+			PPVersion:             chipInfo.Info2.PPVersion,
+			ExtCardResource: ExtCardResourceResponse{
+				InstalledApplication:  chipInfo.Info2.ExtCardResource.InstalledApplication,
+				FreeNonVolatileMemory: chipInfo.Info2.ExtCardResource.FreeNonVolatileMemory,
+				FreeVolatileMemory:    chipInfo.Info2.ExtCardResource.FreeVolatileMemory,
+			},
+			UICCCapability:                 chipInfo.Info2.UICCCapability,
+			RSPCapability:                  chipInfo.Info2.RSPCapability,
+			EUICCCiPKIdListForVerification: chipInfo.Info2.EUICCCiPKIdListForVerification,
+			EUICCCiPKIdListForSigning:      chipInfo.Info2.EUICCCiPKIdListForSigning,
+			ForbiddenProfilePolicyRules:    chipInfo.Info2.ForbiddenProfilePolicyRules,
+			EUICCCategory:                  chipInfo.Info2.EUICCCategory,
+			SASAccreditationNumber:         chipInfo.Info2.SASAccreditationNumber,
+			CertificationDataObject: CertificationDataObjectResponse{
+				PlatformLabel:    chipInfo.Info2.CertificationDataObject.PlatformLabel,
+				DiscoveryBaseURL: chipInfo.Info2.CertificationDataObject.DiscoveryBaseURL,
+			},
+		}
+	}
+
+	// Add RAT if available
+	if len(chipInfo.RulesAuthorisationTable) > 0 {
+		response.RulesAuthorisationTable = make([]RATResponse, 0, len(chipInfo.RulesAuthorisationTable))
+		for _, rat := range chipInfo.RulesAuthorisationTable {
+			ratResp := RATResponse{
+				PPRIds: rat.PPRIds,
+			}
+
+			if len(rat.AllowedOperators) > 0 {
+				ratResp.AllowedOperators = make([]AllowedOperatorResponse, 0, len(rat.AllowedOperators))
+				for _, op := range rat.AllowedOperators {
+					ratResp.AllowedOperators = append(ratResp.AllowedOperators, AllowedOperatorResponse{
+						PLMN: op.PLMN,
+						GID1: op.GID1,
+						GID2: op.GID2,
+					})
+				}
+			}
+
+			response.RulesAuthorisationTable = append(response.RulesAuthorisationTable, ratResp)
+		}
+	}
+
+	outputSuccess(response)
 }
 
 func handleList(client *lpa.Client) {
@@ -909,6 +1045,7 @@ Commands:
   version                       Show version information
   eid                           Get EID
   info                          Get eUICC information (EID + EUICCInfo1 + EUICCInfo2)
+  chip-info                     Get detailed chip information (parsed, includes memory/capabilities)
   list                          List all profiles
   enable <iccid>                Enable profile by ICCID
   disable <iccid>               Disable profile by ICCID
