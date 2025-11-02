@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -75,14 +76,12 @@ type ConfiguredAddressesResponse struct {
 }
 
 type ProcessedNotification struct {
-	SequenceNumber int    `json:"sequence_number"`
-	ICCID          string `json:"iccid"`
-	Operation      int    `json:"operation"`
+	SequenceNumber int  `json:"sequence_number"`
+	Removed        bool `json:"removed"`
 }
 
 type FailedNotification struct {
 	SequenceNumber int    `json:"sequence_number"`
-	ICCID          string `json:"iccid"`
 	Error          string `json:"error"`
 }
 
@@ -138,6 +137,8 @@ func main() {
 		"notifications":         true,
 		"notification-remove":   true,
 		"notification-handle":   true,
+		"auto-notification":     true,
+		"notification-process":  true,
 		"configured-addresses":  true,
 		"set-default-dp":        true,
 		"challenge":             true,
@@ -186,6 +187,8 @@ func main() {
 		handleNotificationHandle(client)
 	case "auto-notification":
 		handleAutoNotification(client)
+	case "notification-process":
+		handleNotificationProcess(client)
 	case "configured-addresses":
 		handleConfiguredAddresses(client)
 	case "set-default-dp":
@@ -669,85 +672,96 @@ func handleNotificationHandle(client *lpa.Client) {
 }
 
 func handleAutoNotification(client *lpa.Client) {
-	// Retrieve all pending notifications metadata
-	notificationList, err := client.ListNotification()
+	// Use the library's ProcessAllNotifications function
+	results, err := client.ProcessAllNotifications(&lpa.ProcessNotificationsOptions{
+		AutoRemove:      true,
+		ContinueOnError: true,
+	})
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
 
-	if len(notificationList) == 0 {
-		outputSuccess(AutoNotificationResponse{
-			Message:       "no pending notifications",
-			Total:         0,
-			Processed:     0,
-			Failed:        0,
-			ProcessedList: []ProcessedNotification{},
-			FailedList:    []FailedNotification{},
-		})
-		return
-	}
-
-	// Process all notifications concurrently
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	processed := make([]ProcessedNotification, 0, len(notificationList))
+	// Convert results to response format
+	processed := make([]ProcessedNotification, 0)
 	failed := make([]FailedNotification, 0)
 
-	for _, metadata := range notificationList {
-		wg.Add(1)
-		go func(meta *sgp22.NotificationMetadata) {
-			defer wg.Done()
-
-			// Retrieve the actual notification using sequence number
-			notifications, err := client.RetrieveNotificationList(meta.SequenceNumber)
-			if err != nil {
-				mu.Lock()
-				failed = append(failed, FailedNotification{
-					SequenceNumber: int(meta.SequenceNumber),
-					ICCID:          meta.ICCID.String(),
-					Error:          err.Error(),
-				})
-				mu.Unlock()
-				return
-			}
-
-			if len(notifications) == 0 {
-				mu.Lock()
-				failed = append(failed, FailedNotification{
-					SequenceNumber: int(meta.SequenceNumber),
-					ICCID:          meta.ICCID.String(),
-					Error:          "notification not found",
-				})
-				mu.Unlock()
-				return
-			}
-
-			// Handle the notification
-			err = client.HandleNotification(notifications[0])
-			mu.Lock()
-			if err != nil {
-				failed = append(failed, FailedNotification{
-					SequenceNumber: int(meta.SequenceNumber),
-					ICCID:          meta.ICCID.String(),
-					Error:          err.Error(),
-				})
-			} else {
-				processed = append(processed, ProcessedNotification{
-					SequenceNumber: int(meta.SequenceNumber),
-					ICCID:          meta.ICCID.String(),
-					Operation:      int(meta.ProfileManagementOperation),
-				})
-			}
-			mu.Unlock()
-		}(metadata)
+	for _, result := range results {
+		if result.Success {
+			processed = append(processed, ProcessedNotification{
+				SequenceNumber: int(result.SequenceNumber),
+				Removed:        result.Removed,
+			})
+		} else {
+			failed = append(failed, FailedNotification{
+				SequenceNumber: int(result.SequenceNumber),
+				Error:          result.Error.Error(),
+			})
+		}
 	}
-
-	wg.Wait()
 
 	outputSuccess(AutoNotificationResponse{
 		Message:       "auto notification processing completed",
-		Total:         len(notificationList),
+		Total:         len(results),
+		Processed:     len(processed),
+		Failed:        len(failed),
+		ProcessedList: processed,
+		FailedList:    failed,
+	})
+}
+
+func handleNotificationProcess(client *lpa.Client) {
+	// Get sequence numbers from arguments
+	if flag.NArg() < 2 {
+		outputError(fmt.Errorf("sequence number(s) required"))
+		os.Exit(1)
+	}
+
+	// Parse all sequence numbers from arguments
+	var sequenceNumbers []sgp22.SequenceNumber
+	for i := 1; i < flag.NArg(); i++ {
+		seqNum, err := strconv.Atoi(flag.Arg(i))
+		if err != nil {
+			outputError(fmt.Errorf("invalid sequence number '%s': %w", flag.Arg(i), err))
+			os.Exit(1)
+		}
+		sequenceNumbers = append(sequenceNumbers, sgp22.SequenceNumber(seqNum))
+	}
+
+	// Use the library's ProcessNotifications function
+	results, err := client.ProcessNotifications(
+		&lpa.ProcessNotificationsOptions{
+			AutoRemove:      true,
+			ContinueOnError: true,
+		},
+		sequenceNumbers...,
+	)
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+
+	// Convert results to response format
+	processed := make([]ProcessedNotification, 0)
+	failed := make([]FailedNotification, 0)
+
+	for _, result := range results {
+		if result.Success {
+			processed = append(processed, ProcessedNotification{
+				SequenceNumber: int(result.SequenceNumber),
+				Removed:        result.Removed,
+			})
+		} else {
+			failed = append(failed, FailedNotification{
+				SequenceNumber: int(result.SequenceNumber),
+				Error:          result.Error.Error(),
+			})
+		}
+	}
+
+	outputSuccess(AutoNotificationResponse{
+		Message:       "notification processing completed",
+		Total:         len(results),
 		Processed:     len(processed),
 		Failed:        len(failed),
 		ProcessedList: processed,
@@ -867,6 +881,8 @@ Commands:
   notifications                 List notifications
   notification-remove <seq>     Remove notification by sequence number
   notification-handle <seq>     Handle notification by sequence number
+  auto-notification             Automatically process all pending notifications
+  notification-process <seq...> Process specific notifications by sequence number(s)
   configured-addresses          Get configured SM-DP+/SM-DS addresses
   set-default-dp <address>      Set default SM-DP+ address
   challenge                     Get eUICC challenge
