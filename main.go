@@ -15,9 +15,6 @@ import (
 	"time"
 
 	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/driver/at"
-	"github.com/KilimcininKorOglu/euicc-go/driver/mbim"
-	"github.com/KilimcininKorOglu/euicc-go/driver/qmi"
 	"github.com/KilimcininKorOglu/euicc-go/lpa"
 	sgp22 "github.com/KilimcininKorOglu/euicc-go/v2"
 )
@@ -311,20 +308,29 @@ func initClient() (*lpa.Client, error) {
 func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, error) {
 	switch driverName {
 	case "qmi":
+		if !qmiSupported {
+			return nil, fmt.Errorf("QMI driver not supported on this platform")
+		}
 		if device == "" {
 			device = "/dev/cdc-wdm0"
 		}
-		return qmi.New(device, uint8(slot))
+		return newQMIDriver(device, uint8(slot))
 	case "mbim":
+		if !mbimSupported {
+			return nil, fmt.Errorf("MBIM driver not supported on this platform")
+		}
 		if device == "" {
 			device = "/dev/cdc-wdm0"
 		}
-		return mbim.New(device, uint8(slot))
+		return newMBIMDriver(device, uint8(slot))
 	case "at":
+		if !atSupported {
+			return nil, fmt.Errorf("AT driver not supported on this platform")
+		}
 		if device == "" {
 			return nil, fmt.Errorf("device path required for AT driver")
 		}
-		return at.New(device)
+		return newATDriver(device)
 	case "ccid":
 		return initCCIDDriver()
 	default:
@@ -334,8 +340,8 @@ func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, e
 
 func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 	// Try QMI
-	if device == "" || device == "/dev/cdc-wdm0" {
-		if ch, err := qmi.New("/dev/cdc-wdm0", uint8(slot)); err == nil {
+	if qmiSupported && (device == "" || device == "/dev/cdc-wdm0") {
+		if ch, err := newQMIDriver("/dev/cdc-wdm0", uint8(slot)); err == nil {
 			if *verbose {
 				log.Println("Auto-detected: QMI driver")
 			}
@@ -344,8 +350,8 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 	}
 
 	// Try MBIM
-	if device == "" || device == "/dev/cdc-wdm0" {
-		if ch, err := mbim.New("/dev/cdc-wdm0", uint8(slot)); err == nil {
+	if mbimSupported && (device == "" || device == "/dev/cdc-wdm0") {
+		if ch, err := newMBIMDriver("/dev/cdc-wdm0", uint8(slot)); err == nil {
 			if *verbose {
 				log.Println("Auto-detected: MBIM driver")
 			}
@@ -354,16 +360,18 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 	}
 
 	// Try AT on common devices
-	atDevices := []string{"/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB1"}
-	if device != "" {
-		atDevices = []string{device}
-	}
-	for _, dev := range atDevices {
-		if ch, err := at.New(dev); err == nil {
-			if *verbose {
-				log.Printf("Auto-detected: AT driver on %s\n", dev)
+	if atSupported {
+		atDevices := []string{"/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB1"}
+		if device != "" {
+			atDevices = []string{device}
+		}
+		for _, dev := range atDevices {
+			if ch, err := newATDriver(dev); err == nil {
+				if *verbose {
+					log.Printf("Auto-detected: AT driver on %s\n", dev)
+				}
+				return ch, nil
 			}
-			return ch, nil
 		}
 	}
 
