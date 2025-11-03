@@ -1,18 +1,19 @@
 # New Features in Hermes eUICC Manager
 
-This document describes the new features added to the Hermes eUICC Manager CLI application, integrating the latest APIs from euicc-go library v1.2.1.
+This document describes the new features added to the Hermes eUICC Manager CLI application, integrating the latest APIs from euicc-go library v1.2.2+.
 
-**Last Updated:** 2025-11-02
+**Last Updated:** 2025-11-03
 
 ---
 
 ## Overview
 
-Three major feature sets have been added to the CLI application, leveraging new APIs from the euicc-go library:
+Four major feature sets have been added to the CLI application, leveraging new APIs from the euicc-go library:
 
 1. **Enhanced Notification Processing** - Automated bulk notification handling
 2. **Profile Discovery & Download** - SM-DS profile discovery with one-step download
 3. **Chip Information** - Detailed eUICC chip information with parsed data
+4. **Cross-Platform Driver Support** - AT and CCID drivers now work on all major operating systems
 
 All features maintain the JSON-only output format for easy automation and scripting.
 
@@ -376,6 +377,125 @@ echo "RAM: $((FREE_RAM / 1024)) KB available"
 
 ---
 
+## 4. Cross-Platform Driver Support
+
+### AT Driver (Enhanced)
+
+The AT driver has been completely rewritten to support all major operating systems using platform-specific serial port implementations.
+
+**Platform Support:**
+- ✅ **Linux** - Via `/dev/ttyUSB*`, `/dev/ttyACM*`
+- ✅ **macOS** - Via `/dev/cu.usbserial*`, `/dev/cu.usbmodem*`
+- ✅ **Windows** - Via `COM1-10`
+- ✅ **FreeBSD** - Via `/dev/cuaU*`, `/dev/ttyU*`
+
+**Features:**
+- Automatic platform-specific device detection
+- Uniform API across all platforms
+- Native serial port handling (no CGO dependencies)
+- Full AT command support on all platforms
+
+**Usage (works on any platform):**
+```bash
+# Auto-detect AT modem
+hermes-euicc list
+
+# Manual AT driver selection
+hermes-euicc --driver at --device /dev/ttyUSB2 list  # Linux
+hermes-euicc --driver at --device /dev/cu.usbserial list  # macOS
+hermes-euicc --driver at --device COM3 list  # Windows
+```
+
+### CCID Driver (Enhanced)
+
+The CCID driver now supports all major operating systems via PC/SC framework integration.
+
+**Platform Support:**
+- ✅ **Linux** - Via pcscd daemon (pcsc-lite)
+- ✅ **macOS** - Via CryptoTokenKit framework (built-in)
+- ✅ **Windows** - Via Smart Card service (winscard.dll)
+- ✅ **FreeBSD** - Via pcsc-lite package
+- ❌ **OpenWRT** - Disabled (binary size optimization)
+
+**Platform-Specific Requirements:**
+
+**Linux:**
+```bash
+# Install pcscd
+sudo apt install pcscd libpcsclite-dev  # Debian/Ubuntu
+sudo pacman -S pcsclite  # Arch Linux
+
+# Start service
+sudo systemctl start pcscd
+sudo systemctl enable pcscd
+```
+
+**macOS:**
+- No installation needed (built-in PC/SC support)
+
+**Windows:**
+- No installation needed (built-in Smart Card service)
+- Ensure "Smart Card" service is running
+
+**FreeBSD:**
+```bash
+# Install pcsc-lite
+pkg install pcsc-lite
+
+# Start service
+service pcscd start
+sysrc pcscd_enable=YES
+```
+
+**Usage (works on all platforms):**
+```bash
+# Auto-detect CCID reader
+hermes-euicc list
+
+# Manual CCID driver selection
+hermes-euicc --driver ccid list
+```
+
+**Benefits:**
+- Works with any USB smart card reader
+- No modem hardware required
+- Ideal for desktop/laptop development and testing
+- Cross-platform testing without platform-specific hardware
+
+**Common USB Smart Card Readers:**
+- Generic PC/SC readers
+- Gemalto (Thales) readers
+- Identiv readers
+- SCM Microsystems readers
+- HID Omnikey readers
+
+### Build System Updates
+
+**Cross-Platform Build Script:**
+The `build-all.sh` script now builds for 20 platforms:
+- Linux: 3 architectures
+- OpenWRT: 10 architectures (CCID disabled)
+- macOS: 2 architectures
+- Windows: 3 architectures
+- FreeBSD: 2 architectures
+
+**Build Tags:**
+```bash
+# OpenWRT build (UCI support, CCID disabled)
+go build -tags=openwrt -o hermes-euicc .
+
+# Standard build (all drivers)
+go build -o hermes-euicc .
+```
+
+**Platform Detection:**
+The application automatically detects the platform and adjusts driver availability:
+- QMI/MBIM: Linux only (kernel drivers)
+- AT: All platforms (serial port API)
+- CCID: All platforms except OpenWRT (PC/SC API)
+
+---
+
 ## Complete Feature Comparison
 
 ### Before vs After
@@ -387,6 +507,9 @@ echo "RAM: $((FREE_RAM / 1024)) KB available"
 | **Chip Info** | Raw hex only | Parsed data | New feature |
 | **One-step Download** | Not available | discover-download | New feature |
 | **Selective Processing** | Not available | notification-process | New feature |
+| **AT Driver** | Linux only | Cross-platform | All OSes supported |
+| **CCID Driver** | amd64/arm64 only | Cross-platform | All OSes supported |
+| **Platform Support** | 8 platforms | 20 platforms | 150% increase |
 | **Code Maintainability** | Manual concurrency | Library handles it | Much better |
 | **Error Handling** | Basic | Per-item detailed | Much better |
 
@@ -527,7 +650,9 @@ hermes-euicc chip-info | jq -r '.data.euicc_info2.ext_card_resource.free_non_vol
 
 ## Library Version
 
-These features require euicc-go library v1.2.1 or later.
+These features require euicc-go library v1.2.2 or later.
+
+**Important:** v1.2.2 fixes critical ExtCardResource memory parsing bug that was returning zeros. Always use v1.2.2+ for accurate memory information in `chip-info` command.
 
 To check your library version:
 ```bash
@@ -543,6 +668,15 @@ go mod tidy
 ---
 
 ## Changelog
+
+### v1.1.0 (2025-11-03)
+- ✅ Cross-platform AT driver support (Linux, macOS, Windows, FreeBSD)
+- ✅ Cross-platform CCID driver support (all platforms except OpenWRT)
+- ✅ Upgraded to euicc-go v1.2.2+ (fixes ExtCardResource memory parsing bug)
+- ✅ Build system supports 20 platforms (was 8)
+- ✅ Added build tags for OpenWRT (UCI support, CCID disabled)
+- ✅ Platform-specific device auto-detection for all OSes
+- ✅ Comprehensive documentation updates
 
 ### v1.0.0 (2025-11-02)
 - ✅ Added `notification-process` command
