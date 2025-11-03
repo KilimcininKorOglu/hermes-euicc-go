@@ -2,7 +2,7 @@ module github.com/KilimcininKorOglu/euicc-go/app
 
 go 1.24.0
 
-require github.com/KilimcininKorOglu/euicc-go v1.2.1
+require github.com/KilimcininKorOglu/euicc-go v1.2.2
 
 require (
 	github.com/ElMostafaIdrassi/goscard v1.0.0 // indirect

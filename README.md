@@ -13,10 +13,32 @@
 
 ## Installation
 
+### Quick Build
+
 ```bash
 cd app
 go build -o hermes-euicc
 ```
+
+### Build Script
+
+**Universal build for all platforms:**
+```bash
+./build-all.sh
+```
+
+**Outputs organized by platform:**
+- `build/linux/` - Desktop/Server Linux binaries
+- `build/openwrt/` - Embedded Linux (routers, IoT devices)
+- `build/darwin/` - macOS binaries
+- `build/windows/` - Windows binaries
+- `build/freebsd/` - FreeBSD binaries
+
+**Note:** Script automatically installs Go 1.24.0 if not found.
+
+### Pre-built Binaries
+
+Check the [Releases](https://github.com/KilimcininKorOglu/euicc-go/releases) page for pre-built binaries.
 
 ## Usage
 
@@ -474,6 +496,64 @@ done
 - `test`: Test profile
 - `provisioning`: Provisioning profile
 - `operational`: Operational profile
+
+## OpenWRT Installation
+
+### 1. Identify Your Device Architecture
+
+On your OpenWRT device:
+
+```bash
+# Check architecture
+uname -m
+
+# Check musl libc architecture (most reliable)
+ls -la /lib/ld-musl-*.so.1
+```
+
+### 2. Select the Correct Binary
+
+| musl libc file | Architecture | Use binary |
+|----------------|--------------|------------|
+| `ld-musl-mips-sf.so.1` | MIPS Big-Endian | `build/openwrt/hermes-euicc-mips` |
+| `ld-musl-mipsel-sf.so.1` | MIPS Little-Endian | `build/openwrt/hermes-euicc-mipsle` |
+| `ld-musl-armhf.so.1` | ARM v7 (32-bit) | `build/openwrt/hermes-euicc-arm_v7` |
+| `ld-musl-aarch64.so.1` | ARM 64-bit | `build/openwrt/hermes-euicc-arm64` |
+| `ld-musl-x86_64.so.1` | x86-64 | `build/openwrt/hermes-euicc-x86_64` |
+
+**Common Devices:**
+- **TP-Link Archer**, **GL.iNet AR/XE series**, **Ubiquiti EdgeRouter** → `mips`
+- **GL.iNet MT series**, **many MediaTek routers** → `mipsle`
+- **GL.iNet B1300**, **IPQ40xx devices** → `arm_v7`
+- **BananaPi R3/R4**, **GL.iNet MT6000** → `arm64`
+- **PC Engines APU**, **Protectli**, **x86 VMs** → `x86_64`
+
+### 3. Transfer and Install
+
+```bash
+# On your computer: Transfer binary to router
+scp build/openwrt/hermes-euicc-mips root@192.168.1.1:/tmp/
+
+# On OpenWRT router: Install
+chmod +x /tmp/hermes-euicc-mips
+mv /tmp/hermes-euicc-mips /usr/bin/hermes-euicc
+
+# Test
+hermes-euicc version
+```
+
+### 4. Verify Binary Works
+
+```bash
+# Check binary format (requires file command - optional)
+file /usr/bin/hermes-euicc
+
+# Test functionality
+hermes-euicc eid
+hermes-euicc list
+```
+
+**Important:** Always transfer binaries in **binary mode** (not text/ASCII mode) to avoid corruption.
 
 ## License
 
