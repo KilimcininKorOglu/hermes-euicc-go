@@ -359,9 +359,9 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 		}
 	}
 
-	// Try AT on common devices
+	// Try AT on common devices (platform-specific)
 	if atSupported {
-		atDevices := []string{"/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB1"}
+		atDevices := defaultATDevices()
 		if device != "" {
 			atDevices = []string{device}
 		}
