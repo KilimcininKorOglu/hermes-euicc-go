@@ -154,13 +154,31 @@ type AllowedOperatorResponse struct {
 var (
 	devicePath  = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
 	driverType  = flag.String("driver", "", "Driver type: qmi, mbim, at, ccid (auto-detect if not specified)")
-	slotNumber  = flag.Int("slot", 1, "SIM slot number")
+	slotNumber  = flag.Int("slot", 0, "SIM slot number (0 = use UCI config)")
 	verbose     = flag.Bool("verbose", false, "Enable verbose logging")
-	timeout     = flag.Int("timeout", 30, "HTTP timeout in seconds")
+	timeout     = flag.Int("timeout", 0, "HTTP timeout in seconds (0 = use UCI config)")
 )
 
 func main() {
+	// Read UCI config first (defaults)
+	uciConfig := readUCIConfig()
+
+	// Parse command-line flags (override UCI config)
 	flag.Parse()
+
+	// Apply UCI config values if flags weren't explicitly set
+	if *driverType == "" && uciConfig.Driver != "auto" {
+		*driverType = uciConfig.Driver
+	}
+	if *devicePath == "" && uciConfig.Device != "" {
+		*devicePath = uciConfig.Device
+	}
+	if *slotNumber == 0 {
+		*slotNumber = uciConfig.Slot
+	}
+	if *timeout == 0 {
+		*timeout = uciConfig.Timeout
+	}
 
 	if flag.NArg() < 1 {
 		printUsage()
@@ -1034,11 +1052,22 @@ Global Options:
   -driver string
         Driver type: qmi, mbim, at, ccid (auto-detect if not specified)
   -slot int
-        SIM slot number (default 1)
+        SIM slot number (0 = use UCI config, default: UCI or 1)
   -timeout int
-        HTTP timeout in seconds (default 30)
+        HTTP timeout in seconds (0 = use UCI config, default: UCI or 30)
   -verbose
         Enable verbose logging
+
+UCI Configuration (OpenWRT):
+  Settings from /etc/config/hermes-euicc are automatically loaded.
+  Command-line flags override UCI settings.
+
+  Config file: /etc/config/hermes-euicc
+    config hermes-euicc 'hermes-euicc'
+        option driver 'auto'        # auto, qmi, mbim, at, ccid
+        option device ''            # Device path (empty = auto)
+        option slot '1'             # SIM slot number
+        option timeout '30'         # HTTP timeout in seconds
 
 Commands:
   help                          Show this help message

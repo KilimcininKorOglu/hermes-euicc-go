@@ -146,6 +146,7 @@ build_platform() {
     local OUTPUT_NAME=$5
     local DESCRIPTION=$6
     local OPT_FLAGS=$7  # Optimization flags like GOMIPS=softfloat
+    local BUILD_TAGS=$8  # Build tags like "openwrt"
 
     local OUTPUT_PATH="${BUILD_DIR}/${OUTPUT_DIR}/${OUTPUT_NAME}"
 
@@ -164,7 +165,12 @@ build_platform() {
     local BUILD_CMD="CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH"
     [ -n "$GOARM" ] && BUILD_CMD="$BUILD_CMD GOARM=$GOARM"
 
+    # Add build tags if specified
+    local TAGS_FLAG=""
+    [ -n "$BUILD_TAGS" ] && TAGS_FLAG="-tags=$BUILD_TAGS"
+
     if (cd ${SOURCE_DIR} && eval $BUILD_CMD go build \
+        $TAGS_FLAG \
         -ldflags=-s \
         -trimpath \
         -o "${OUTPUT_PATH}" \
@@ -232,48 +238,48 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║           OpenWRT/Embedded Linux (Routers/IoT)             ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# MIPS Platforms
+# MIPS Platforms (with openwrt build tag for UCI support)
 build_platform "linux" "mips" "" "openwrt" "${BINARY_NAME}-mips" \
     "MIPS BE (Atheros AR/QCA, TP-Link, GL.iNet AR/XE, Ubiquiti)" \
-    "GOMIPS=softfloat"
+    "GOMIPS=softfloat" "openwrt"
 
 build_platform "linux" "mipsle" "" "openwrt" "${BINARY_NAME}-mipsle" \
     "MIPS LE (MediaTek MT76xx, GL.iNet MT, Ralink)" \
-    "GOMIPS=softfloat"
+    "GOMIPS=softfloat" "openwrt"
 
 build_platform "linux" "mips64" "" "openwrt" "${BINARY_NAME}-mips64" \
     "MIPS64 BE (Cavium Octeon, EdgeRouter Pro)" \
-    "GOMIPS64=softfloat"
+    "GOMIPS64=softfloat" "openwrt"
 
 build_platform "linux" "mips64le" "" "openwrt" "${BINARY_NAME}-mips64le" \
     "MIPS64 LE (Cavium Octeon Little-Endian)" \
-    "GOMIPS64=softfloat"
+    "GOMIPS64=softfloat" "openwrt"
 
-# ARM Embedded Platforms
+# ARM Embedded Platforms (with openwrt build tag for UCI support)
 build_platform "linux" "arm" "5" "openwrt" "${BINARY_NAME}-arm_v5" \
     "ARM v5 (Kirkwood, Old NAS devices)" \
-    ""
+    "" "openwrt"
 
 build_platform "linux" "arm" "6" "openwrt" "${BINARY_NAME}-arm_v6" \
     "ARM v6 (Raspberry Pi Zero/1, BCM2835)" \
-    ""
+    "" "openwrt"
 
 build_platform "linux" "arm" "7" "openwrt" "${BINARY_NAME}-arm_v7" \
     "ARM v7 (IPQ40xx, GL.iNet B1300, Raspberry Pi 2/3)" \
-    ""
+    "" "openwrt"
 
 build_platform "linux" "arm64" "" "openwrt" "${BINARY_NAME}-arm64" \
     "ARM64 (MT7622/MT7986, IPQ807x, BananaPi R3/R4, GL.iNet MT6000)" \
-    ""
+    "" "openwrt"
 
-# x86 Embedded Platforms
+# x86 Embedded Platforms (with openwrt build tag for UCI support)
 build_platform "linux" "386" "" "openwrt" "${BINARY_NAME}-x86" \
     "x86 32-bit (Legacy PC Engines, Old x86 routers)" \
-    ""
+    "" "openwrt"
 
 build_platform "linux" "amd64" "" "openwrt" "${BINARY_NAME}-x86_64" \
     "x86-64 (PC Engines APU, Protectli, x86 routers, VMs)" \
-    "GOAMD64=v2"
+    "GOAMD64=v2" "openwrt"
 
 # =============================================================================
 # macOS Builds
