@@ -21,14 +21,12 @@ func newMBIMDriver(device string, slot uint8) (apdu.SmartCardChannel, error) {
 	return nil, fmt.Errorf("MBIM driver not supported on this platform (Linux only)")
 }
 
-// newATDriver returns an error on non-Linux platforms (AT driver implementation pending)
-func newATDriver(device string) (apdu.SmartCardChannel, error) {
-	return nil, fmt.Errorf("AT driver not yet implemented for this platform")
-}
+// newATDriver is implemented in platform-specific files (driver_at_*.go)
+// No stub needed here - build tags ensure correct file is compiled
 
 // Driver availability flags
 const (
 	qmiSupported  = false
 	mbimSupported = false
-	atSupported   = false
+	// atSupported is defined in platform-specific driver_at_*.go files
 )
