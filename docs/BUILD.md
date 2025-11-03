@@ -1,13 +1,14 @@
 # Build Guide - Hermes eUICC Manager
 
-Comprehensive build instructions for all supported platforms and architectures.
+Comprehensive build instructions for all 20 supported platforms and architectures.
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Build Methods](#build-methods)
+- [Universal Build System](#universal-build-system)
 - [Platform-Specific Builds](#platform-specific-builds)
+- [Cross-Platform Builds](#cross-platform-builds)
 - [Optimization Levels](#optimization-levels)
 - [Binary Size Optimization](#binary-size-optimization)
 - [Troubleshooting](#troubleshooting)
@@ -18,20 +19,12 @@ Comprehensive build instructions for all supported platforms and architectures.
 
 - **Go 1.24+**: Download from <https://go.dev/dl/>
 - **Git**: For cloning repository
-- **Linux**: Primary development platform
-
-### Optional
-
-- **UPX**: For binary compression (sudo apt install upx)
-- **Make**: For using Makefile targets
 
 ### Verify Installation
 
 ```bash
 go version    # Should show go1.24 or later
 git --version
-make --version  # Optional
-upx --version   # Optional
 ```
 
 ## Quick Start
@@ -41,7 +34,7 @@ upx --version   # Optional
 ```bash
 cd app
 go build -o hermes-euicc .
-./hermes-euicc --version
+./hermes-euicc version
 ```
 
 ### Optimized Build (Current Platform)
@@ -55,122 +48,99 @@ Flags explained:
 
 - `-ldflags="-s -w"`: Remove debug information and symbol table
 - `-trimpath`: Remove file path information
+- `CGO_ENABLED=0`: Static linking (no C dependencies)
 
-## Build Methods
+## Universal Build System
 
-### Method 1: Using Makefile (Recommended)
+### build-all.sh - One Script for All Platforms
 
-From repository root:
-
-```bash
-# Build all platforms
-make all
-
-# Build specific platforms
-make mipsle
-make armv7
-make arm64
-make amd64
-
-# Build OpenWRT popular platforms only
-make openwrt
-
-# Build + compress + checksum
-make all compress checksum
-
-# Clean build directory
-make clean
-```
-
-### Method 2: Using build-all.sh
-
-Generic platform builds from app/ directory:
+The `build-all.sh` script builds for **all 20 platforms** with a single command:
 
 ```bash
 cd app
 ./build-all.sh
 ```
 
-Output directory: build/
+**Features:**
+- Auto-installs Go 1.24.0 if not found
+- Builds 20 platforms (Linux, OpenWRT, macOS, Windows, FreeBSD)
+- Platform-specific optimizations (GOMIPS=softfloat, GOAMD64=v2)
+- Organized output directories
+- SHA256SUMS generation per directory + master file
+- Colored output with progress indication
+- Continues on errors (doesn't stop the entire build)
 
-Binaries created (8 total):
-
-- hermes-euicc-mipsle (MIPS Little Endian)
-- hermes-euicc-mips (MIPS Big Endian)
-- hermes-euicc-armv5 (ARMv5)
-- hermes-euicc-armv6 (ARMv6)
-- hermes-euicc-armv7 (ARMv7)
-- hermes-euicc-arm64 (ARM64)
-- hermes-euicc-i386 (x86 32-bit)
-- hermes-euicc-amd64 (x86 64-bit)
-
-Features:
-
-- Colored output
-- Automatic UPX compression (if installed)
-- SHA256 checksum generation
-- Typical size: 6.5 MB → 2.8 MB (compressed)
-
-### Method 3: Using build-openwrt.sh
-
-Device-specific optimized builds from app/ directory:
-
-```bash
-cd app
-./build-openwrt.sh
+**Output structure:**
+```
+build/
+├── linux/
+│   ├── hermes-euicc-amd64
+│   ├── hermes-euicc-i386
+│   ├── hermes-euicc-arm64
+│   └── SHA256SUMS
+├── openwrt/
+│   ├── hermes-euicc-mips
+│   ├── hermes-euicc-mipsle
+│   ├── hermes-euicc-mips64
+│   ├── hermes-euicc-mips64le
+│   ├── hermes-euicc-arm_v5
+│   ├── hermes-euicc-arm_v6
+│   ├── hermes-euicc-arm_v7
+│   ├── hermes-euicc-arm64
+│   ├── hermes-euicc-x86
+│   ├── hermes-euicc-x86_64
+│   └── SHA256SUMS
+├── darwin/
+│   ├── hermes-euicc-amd64
+│   ├── hermes-euicc-arm64
+│   └── SHA256SUMS
+├── windows/
+│   ├── hermes-euicc-amd64.exe
+│   ├── hermes-euicc-i386.exe
+│   ├── hermes-euicc-arm64.exe
+│   └── SHA256SUMS
+├── freebsd/
+│   ├── hermes-euicc-amd64
+│   ├── hermes-euicc-arm64
+│   └── SHA256SUMS
+└── SHA256SUMS.txt (master)
 ```
 
-Output directory: build/openwrt/
+**Total: 20 binaries**
+- Linux: 3 (amd64, i386, arm64)
+- OpenWRT: 10 (MIPS, ARM variants)
+- macOS: 2 (Intel, Apple Silicon)
+- Windows: 3 (x64, x86, ARM64)
+- FreeBSD: 2 (amd64, arm64)
 
-Features:
-
-- 41 device-specific binaries
-- CPU-specific optimizations
-- FPU detection for MIPS
-- AVX2 support for modern x86
-- Chipset information in build log
+**Build script optimizations:**
+- OpenWRT builds use `-tags=openwrt` for UCI config support
+- MIPS uses `GOMIPS=softfloat` for FPU-less routers
+- x86-64 uses `GOAMD64=v2` for SSE4.2 support (2009+ CPUs)
 
 ## Platform-Specific Builds
 
-### MIPS Platforms
+### Linux Desktop/Server
 
-#### MIPS Little Endian (mipsle)
-
-Most common for TP-Link, GL.iNet, Xiaomi routers:
+#### x86-64 (amd64) - Modern PCs and Servers
 
 ```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=mipsle go build \
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v2 go build \
     -ldflags="-s -w" -trimpath \
-    -o hermes-euicc-mipsle .
+    -o hermes-euicc-amd64 .
 ```
 
-Devices: GL.iNet AR750S, TP-Link Archer C7/WR1043ND/WR841N, Xiaomi Mi Router 3G/4A, Ubiquiti EdgeRouter X
+**Devices:** Desktop PCs, servers, PC Engines APU, Protectli Vault
 
-#### MIPS Big Endian (mips)
-
-Older Broadcom-based routers:
+#### x86 32-bit (i386) - Legacy PCs
 
 ```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=mips go build \
+CGO_ENABLED=0 GOOS=linux GOARCH=386 go build \
     -ldflags="-s -w" -trimpath \
-    -o hermes-euicc-mips .
+    -o hermes-euicc-i386 .
 ```
 
-### ARM Platforms
-
-#### ARMv7 (Recommended for most ARM routers)
-
-```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build \
-    -ldflags="-s -w" -trimpath \
-    -o hermes-euicc-armv7 .
-```
-
-Features: VFPv3 floating point, NEON SIMD instructions, 30-40% faster than ARMv5/6
-
-Devices: Raspberry Pi 2/3, GL.iNet B1300, Linksys WRT1900ACS, MikroTik hAP ac2
-
-#### ARM64
+#### ARM64 - Raspberry Pi 4+, Servers
 
 ```bash
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
@@ -178,19 +148,183 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
     -o hermes-euicc-arm64 .
 ```
 
-Devices: Raspberry Pi 4/5, GL.iNet MT6000 (Flint 2), NanoPi R4S, Banana Pi BPI-R3/R4
+**Devices:** Raspberry Pi 4/5, ARM servers
 
-### x86 Platforms
+### OpenWRT/Embedded Linux (Routers)
 
-#### 64-bit (amd64)
+**Note:** OpenWRT builds require `-tags=openwrt` flag to enable UCI config support.
+
+#### MIPS Big Endian - Atheros AR/QCA
 
 ```bash
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+CGO_ENABLED=0 GOOS=linux GOARCH=mips GOMIPS=softfloat go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-mips .
+```
+
+**Devices:** TP-Link Archer series, GL.iNet AR/XE series, Ubiquiti routers
+
+#### MIPS Little Endian - MediaTek MT76xx
+
+```bash
+CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-mipsle .
+```
+
+**Devices:** GL.iNet MT series, Xiaomi routers, Ralink-based devices
+
+#### MIPS64 BE/LE - Cavium Octeon
+
+```bash
+# Big Endian
+CGO_ENABLED=0 GOOS=linux GOARCH=mips64 GOMIPS64=softfloat go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-mips64 .
+
+# Little Endian
+CGO_ENABLED=0 GOOS=linux GOARCH=mips64le GOMIPS64=softfloat go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-mips64le .
+```
+
+**Devices:** Ubiquiti EdgeRouter, Cavium-based systems
+
+#### ARM v5/v6/v7 - Various ARM Routers
+
+```bash
+# ARMv5 (Kirkwood, old NAS)
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=5 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm_v5 .
+
+# ARMv6 (Raspberry Pi Zero/1)
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm_v6 .
+
+# ARMv7 (Most ARM routers)
+CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm_v7 .
+```
+
+**ARMv7 Devices:** GL.iNet B1300, Linksys WRT series, Raspberry Pi 2/3, IPQ40xx routers
+
+#### ARM64 - Modern ARM Routers
+
+```bash
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm64 .
+```
+
+**Devices:** GL.iNet MT6000, BananaPi R3/R4, IPQ807x, MT7622/MT7986 routers
+
+#### x86/x86-64 - PC-based Routers
+
+```bash
+# x86 32-bit
+CGO_ENABLED=0 GOOS=linux GOARCH=386 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-x86 .
+
+# x86-64
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v2 go build \
+    -tags=openwrt -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-x86_64 .
+```
+
+**Devices:** PC Engines APU, Protectli Vault, x86 routers, VMs
+
+### macOS
+
+#### Intel (x86-64)
+
+```bash
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GOAMD64=v2 go build \
     -ldflags="-s -w" -trimpath \
     -o hermes-euicc-amd64 .
 ```
 
-Devices: PC Engines APU, Protectli Vault, Qotom Mini PCs, Generic x86-64 servers
+**Devices:** Intel-based Macs (2006-2020)
+
+#### Apple Silicon (ARM64)
+
+```bash
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm64 .
+```
+
+**Devices:** M1/M2/M3/M4 Macs (2020+)
+
+### Windows
+
+#### x86-64 (64-bit)
+
+```bash
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GOAMD64=v2 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-amd64.exe .
+```
+
+**Devices:** Modern Windows PCs (64-bit)
+
+#### x86 (32-bit)
+
+```bash
+CGO_ENABLED=0 GOOS=windows GOARCH=386 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-i386.exe .
+```
+
+**Devices:** Legacy Windows PCs (32-bit)
+
+#### ARM64
+
+```bash
+CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm64.exe .
+```
+
+**Devices:** Surface Pro X, ARM-based Windows laptops
+
+### FreeBSD
+
+#### x86-64 (amd64)
+
+```bash
+CGO_ENABLED=0 GOOS=freebsd GOARCH=amd64 GOAMD64=v2 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-amd64 .
+```
+
+#### ARM64
+
+```bash
+CGO_ENABLED=0 GOOS=freebsd GOARCH=arm64 go build \
+    -ldflags="-s -w" -trimpath \
+    -o hermes-euicc-arm64 .
+```
+
+## Cross-Platform Builds
+
+You can build for any platform from any platform using Go's cross-compilation:
+
+```bash
+# From Linux, build for macOS ARM64
+GOOS=darwin GOARCH=arm64 go build -o hermes-euicc-macos-arm64 .
+
+# From macOS, build for Windows x64
+GOOS=windows GOARCH=amd64 go build -o hermes-euicc-win64.exe .
+
+# From Windows, build for Linux ARM64
+set GOOS=linux
+set GOARCH=arm64
+go build -o hermes-euicc-linux-arm64 .
+```
 
 ## Optimization Levels
 
@@ -202,38 +336,50 @@ Devices: PC Engines APU, Protectli Vault, Qotom Mini PCs, Generic x86-64 servers
 CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build ...
 ```
 
+Compatible with all MIPS routers (24Kc, 74Kc, 1004Kc cores).
+
 **GOMIPS=hardfloat** - 20-30% faster on FPU-equipped devices
 
 ```bash
 CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=hardfloat go build ...
 ```
 
-Use hardfloat for: QCA9563 (74Kc), MT7621 (1004Kc)
-Use softfloat for: AR9341 (24Kc), QCA9531 (24Kc)
+Use hardfloat for:
+- QCA9563 (74Kc core with FPU)
+- MT7621 (1004Kc core with FPU)
+
+Use softfloat for:
+- AR9341, QCA9531 (24Kc core without FPU)
+- Most TP-Link, GL.iNet routers
 
 ### x86 Optimizations
 
 **GOAMD64 Levels:**
 
 ```bash
-GOAMD64=v1  # Baseline x86-64 (all processors)
-GOAMD64=v2  # +SSE4.2, POPCNT (2009+)
+GOAMD64=v1  # Baseline x86-64 (all processors, maximum compatibility)
+GOAMD64=v2  # +SSE4.2, POPCNT (2009+, recommended)
 GOAMD64=v3  # +AVX2, BMI2 (2013+, 15-25% faster)
 GOAMD64=v4  # +AVX512 (very new, rarely needed)
 ```
 
-Examples:
+**Recommendations:**
 
 ```bash
-# PC Engines APU (AMD GX-412TC, 2013)
+# For maximum compatibility (v1)
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 go build ...
+
+# For modern systems (v2, recommended)
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v2 go build ...
 
-# Qotom Q355G6 (Intel Celeron J3xxx)
+# For latest CPUs (v3)
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v3 go build ...
-
-# Generic (maximum compatibility)
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1 go build ...
 ```
+
+**CPU compatibility:**
+- v1: All x86-64 CPUs (2003+)
+- v2: Intel Nehalem (2009+), AMD Bulldozer (2011+)
+- v3: Intel Haswell (2013+), AMD Excavator (2015+)
 
 ## Binary Size Optimization
 
@@ -247,24 +393,39 @@ Without optimization: ~12 MB
 go build -ldflags="-s -w" -trimpath -o hermes-euicc .
 ```
 
-Result: ~6.5 MB (45% reduction)
-
-### With UPX Compression
-
-```bash
-go build -ldflags="-s -w" -trimpath -o hermes-euicc .
-upx --best --lzma hermes-euicc
-```
-
-Result: ~2.8 MB (57% reduction from 6.5 MB)
+Result: ~6.4 MB (47% reduction)
 
 ### Size Comparison
 
-| Method | Size | Notes |
-|--------|------|-------|
-| Default | 12 MB | No optimization |
-| -ldflags="-s -w" | 6.5 MB | Standard optimization |
-| + UPX --best | 2.8 MB | Recommended |
+| Method | Size | Reduction | Notes |
+|--------|------|-----------|-------|
+| Default build | 12 MB | - | No optimization |
+| `-ldflags="-s -w"` | 6.4 MB | 47% | Standard optimization |
+| `-trimpath` (included) | 6.4 MB | - | Removes build paths |
+
+**Current binary sizes (from build-all.sh):**
+- Linux amd64: 6.4M
+- OpenWRT MIPS: 7.0M
+- macOS ARM64: 6.1M
+- Windows x64: 6.5M
+- FreeBSD amd64: 6.1M
+
+## Build Tags
+
+### OpenWRT UCI Support
+
+OpenWRT builds require the `openwrt` build tag to enable UCI configuration reading:
+
+```bash
+go build -tags=openwrt -o hermes-euicc .
+```
+
+This enables:
+- Reading from `/etc/config/hermes-euicc`
+- Integration with LuCI web interface
+- Automatic configuration loading
+
+Non-OpenWRT builds don't need this tag and will use built-in defaults.
 
 ## Troubleshooting
 
@@ -273,29 +434,46 @@ Result: ~2.8 MB (57% reduction from 6.5 MB)
 Install Go 1.24+:
 
 ```bash
-wget https://go.dev/dl/go1.23.5.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.23.5.linux-amd64.tar.gz
+# Linux/macOS
+wget https://go.dev/dl/go1.24.0.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.24.0.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
+
+# Or let build-all.sh auto-install it
+./build-all.sh
 ```
 
 ### "Illegal instruction" on Target Device
 
-You used wrong optimization level. Rebuild with safe defaults (softfloat for MIPS, v1 for x86).
+Wrong optimization level. Causes:
 
-### Binary Too Large for Router
+1. **MIPS hardfloat on softfloat device**
+   - Solution: Use `GOMIPS=softfloat`
 
-Use UPX compression:
+2. **GOAMD64=v3 on old CPU**
+   - Solution: Use `GOAMD64=v2` or `GOAMD64=v1`
 
-```bash
-upx --best --lzma hermes-euicc
+3. **Wrong GOARM level**
+   - Solution: Use ARMv5 binary for maximum compatibility
+
+### Build Fails on Windows
+
+Use PowerShell or Git Bash, not CMD:
+
+```powershell
+# PowerShell
+$env:CGO_ENABLED="0"
+$env:GOOS="windows"
+$env:GOARCH="amd64"
+go build -ldflags="-s -w" -trimpath -o hermes-euicc.exe .
 ```
 
-### Build Script Permission Denied
+### Cross-Compilation Issues
 
-Make scripts executable:
+Ensure `CGO_ENABLED=0` for cross-compilation:
 
 ```bash
-chmod +x build-all.sh build-openwrt.sh
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ...
 ```
 
 ## Verification
@@ -303,60 +481,95 @@ chmod +x build-all.sh build-openwrt.sh
 ### Check Binary Architecture
 
 ```bash
+# Linux
 file hermes-euicc-mipsle
 # Output: ELF 32-bit LSB executable, MIPS, MIPS32 rel2 version 1...
+
+# macOS
+file hermes-euicc-amd64
+# Output: Mach-O 64-bit executable x86_64
+
+# Windows (use Git Bash)
+file hermes-euicc-amd64.exe
+# Output: PE32+ executable (console) x86-64
 ```
 
 ### Verify SHA256
 
 ```bash
-cd build
+cd build/linux
 sha256sum -c SHA256SUMS
+
+# Or verify master file
+cd build
+sha256sum -c SHA256SUMS.txt
 ```
 
 ### Test Binary
 
 ```bash
-./hermes-euicc --version
+# Local test
+./hermes-euicc version
 
-# On target device
-scp hermes-euicc root@192.168.1.1:/tmp/
+# Remote device test (OpenWRT example)
+scp build/openwrt/hermes-euicc-mipsle root@192.168.1.1:/tmp/
 ssh root@192.168.1.1
-chmod +x /tmp/hermes-euicc
-/tmp/hermes-euicc --version
+chmod +x /tmp/hermes-euicc-mipsle
+/tmp/hermes-euicc-mipsle version
 ```
+
+## Platform Selection Guide
+
+**For OpenWRT/Embedded Routers:**
+
+Check architecture on device:
+
+```bash
+ls -la /lib/ld-musl-*.so.1
+```
+
+Results:
+- `ld-musl-mips-sf.so.1` → Use `hermes-euicc-mips`
+- `ld-musl-mipsel-sf.so.1` → Use `hermes-euicc-mipsle`
+- `ld-musl-armhf.so.1` → Use `hermes-euicc-arm_v7`
+- `ld-musl-aarch64.so.1` → Use `hermes-euicc-arm64`
+- `ld-musl-x86_64.so.1` → Use `hermes-euicc-x86_64`
+
+**For Desktop/Server:**
+- Linux x86-64 → `linux/hermes-euicc-amd64`
+- macOS Intel → `darwin/hermes-euicc-amd64`
+- macOS Apple Silicon → `darwin/hermes-euicc-arm64`
+- Windows 64-bit → `windows/hermes-euicc-amd64.exe`
 
 ## Summary
 
-**For quick development:**
+**Quick development:**
 
 ```bash
 go build -o hermes-euicc .
 ```
 
-**For production (single platform):**
+**Production (single platform):**
 
 ```bash
 go build -ldflags="-s -w" -trimpath -o hermes-euicc .
-upx --best --lzma hermes-euicc
 ```
 
-**For distribution (all platforms):**
+**All platforms (recommended):**
 
 ```bash
-cd app
 ./build-all.sh
 ```
 
-**For device-specific (optimized):**
+**OpenWRT with UCI support:**
 
 ```bash
-cd app
-./build-openwrt.sh
+go build -tags=openwrt -ldflags="-s -w" -trimpath -o hermes-euicc .
 ```
 
-**Using Makefile (recommended):**
+**Cross-platform example:**
 
 ```bash
-make all compress checksum
+# From any OS, build for Raspberry Pi
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -trimpath -o hermes-euicc-rpi4 .
 ```

@@ -22,8 +22,9 @@ Hermes eUICC Manager is a command-line tool that provides complete control over 
 - JSON-only output for automation
 - Auto-detection of hardware drivers (QMI, MBIM, AT, CCID)
 - Complete SGP.22 protocol implementation
-- 17 commands covering all eSIM operations
-- Cross-platform support (MIPS, ARM, x86)
+- 20 commands covering all eSIM operations
+- Cross-platform support (Linux, OpenWRT, macOS, Windows, FreeBSD)
+- 20 platform builds (MIPS, ARM, x86, x86-64)
 
 ## Installation
 
@@ -65,10 +66,10 @@ Force specific driver instead of auto-detection.
 
 Supported drivers:
 
-- `qmi` - Qualcomm MSM Interface (most common)
-- `mbim` - Mobile Broadband Interface Model
-- `at` - AT commands (serial modems)
-- `ccid` - USB smart card readers (Linux amd64/arm64 only)
+- `qmi` - Qualcomm MSM Interface (Linux only)
+- `mbim` - Mobile Broadband Interface Model (Linux only)
+- `at` - AT commands (cross-platform: Linux, macOS, Windows, FreeBSD)
+- `ccid` - USB smart card readers (cross-platform: all platforms via PC/SC)
 
 ```bash
 hermes-euicc -driver qmi list
@@ -115,10 +116,14 @@ hermes-euicc list
 
 Detection order:
 
-1. QMI at `/dev/cdc-wdm0`
-2. MBIM at `/dev/cdc-wdm0`
-3. AT at `/dev/ttyUSB2`, `/dev/ttyUSB3`, `/dev/ttyUSB1`
-4. CCID (USB smart card reader)
+1. QMI at `/dev/cdc-wdm0` (Linux only)
+2. MBIM at `/dev/cdc-wdm0` (Linux only)
+3. AT - Platform-specific device list:
+   - Linux: `/dev/ttyUSB2`, `/dev/ttyUSB3`, `/dev/ttyUSB1`, `/dev/ttyUSB0`, `/dev/ttyACM0-2`
+   - macOS: `/dev/cu.usbserial*`, `/dev/cu.usbmodem1-3`
+   - Windows: `COM1-10`
+   - FreeBSD: `/dev/cuaU0-3`, `/dev/ttyU0-3`
+4. CCID (USB smart card reader - all platforms)
 
 ### Manual Selection
 
@@ -134,12 +139,37 @@ hermes-euicc -driver at -device /dev/ttyUSB0 list
 
 ### Driver Availability by Platform
 
-| Platform | QMI | MBIM | AT | CCID |
-|----------|-----|------|----|------|
-| Linux amd64 | ✓ | ✓ | ✓ | ✓ |
-| Linux arm64 | ✓ | ✓ | ✓ | ✓ |
-| Linux MIPS | ✓ | ✓ | ✓ | ✗ |
-| Linux ARMv7 | ✓ | ✓ | ✓ | ✗ |
+| Platform | QMI | MBIM | AT | CCID | Total Drivers |
+|----------|-----|------|----|------|---------------|
+| **Linux** (all arch) | ✓ | ✓ | ✓ | ✓ | 4 |
+| **OpenWRT** (10 arch) | ✓ | ✓ | ✓ | ✗ | 3 |
+| **macOS** (Intel/ARM) | ✗ | ✗ | ✓ | ✓ | 2 |
+| **Windows** (x64/x86/ARM) | ✗ | ✗ | ✓ | ✓ | 2 |
+| **FreeBSD** (amd64/arm64) | ✗ | ✗ | ✓ | ✓ | 2 |
+
+**Driver Notes:**
+- **QMI/MBIM**: Linux kernel-specific drivers, not available on other platforms
+- **AT**: Cross-platform serial port support (works everywhere)
+- **CCID**: Cross-platform PC/SC support (works everywhere)
+
+**Platform-Specific Device Paths:**
+
+Linux:
+- QMI/MBIM: `/dev/cdc-wdm0`
+- AT: `/dev/ttyUSB*`, `/dev/ttyACM*`
+- CCID: USB (via pcscd)
+
+macOS:
+- AT: `/dev/cu.usbserial*`, `/dev/cu.usbmodem*`
+- CCID: USB (via CryptoTokenKit)
+
+Windows:
+- AT: `COM1-10`
+- CCID: USB (via winscard.dll)
+
+FreeBSD:
+- AT: `/dev/cuaU*`, `/dev/ttyU*`
+- CCID: USB (via pcsc-lite)
 
 ## Commands Reference
 
@@ -798,18 +828,20 @@ sudo chmod 666 /dev/cdc-wdm0
 hermes-euicc -driver qmi -device /dev/cdc-wdm0 list
 ```
 
-### CCID Driver Not Available
+### CCID Driver Not Available (OpenWRT Only)
 
 **Error:**
 
 ```json
 {
   "success": false,
-  "error": "CCID driver not supported on this platform (requires amd64/arm64 + linux)"
+  "error": "CCID driver not supported on this platform"
 }
 ```
 
-**Solution:** CCID is only available on Linux amd64/arm64. Use QMI/MBIM/AT drivers instead.
+**Solution:** CCID is disabled on OpenWRT builds to reduce binary size. Use QMI/MBIM/AT drivers instead.
+
+**Note:** CCID is available on Linux, macOS, Windows, and FreeBSD desktop/server platforms.
 
 ### Invalid ICCID
 
