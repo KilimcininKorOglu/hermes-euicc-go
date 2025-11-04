@@ -286,19 +286,19 @@ build_platform "linux" "amd64" "" "${BINARY_NAME}-openwrt-x86_64" \
     "GOAMD64=v2" "openwrt"
 
 # =============================================================================
-# macOS Builds
+# macOS Builds (DISABLED - upstream euicc-go AT driver not implemented)
 # =============================================================================
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                     macOS Platforms                        ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
-
-build_platform "darwin" "amd64" "" "${BINARY_NAME}-darwin-amd64" \
-    "macOS Intel (x86-64)" \
-    "GOAMD64=v2"
-
-build_platform "darwin" "arm64" "" "${BINARY_NAME}-darwin-arm64" \
-    "macOS Apple Silicon (M1/M2/M3/M4)" \
-    ""
+# echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+# echo -e "${GREEN}║                     macOS Platforms                        ║${NC}"
+# echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
+#
+# build_platform "darwin" "amd64" "" "${BINARY_NAME}-darwin-amd64" \
+#     "macOS Intel (x86-64)" \
+#     "GOAMD64=v2"
+#
+# build_platform "darwin" "arm64" "" "${BINARY_NAME}-darwin-arm64" \
+#     "macOS Apple Silicon (M1/M2/M3/M4)" \
+#     ""
 
 # =============================================================================
 # Windows Builds
@@ -320,19 +320,19 @@ build_platform "windows" "arm64" "" "${BINARY_NAME}-windows-arm64.exe" \
     ""
 
 # =============================================================================
-# FreeBSD Builds
+# FreeBSD Builds (DISABLED - upstream euicc-go AT/CCID drivers not implemented)
 # =============================================================================
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║                    FreeBSD Platforms                       ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
-
-build_platform "freebsd" "amd64" "" "${BINARY_NAME}-freebsd-amd64" \
-    "FreeBSD x86-64" \
-    "GOAMD64=v2"
-
-build_platform "freebsd" "arm64" "" "${BINARY_NAME}-freebsd-arm64" \
-    "FreeBSD ARM 64-bit" \
-    ""
+# echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+# echo -e "${GREEN}║                    FreeBSD Platforms                       ║${NC}"
+# echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
+#
+# build_platform "freebsd" "amd64" "" "${BINARY_NAME}-freebsd-amd64" \
+#     "FreeBSD x86-64" \
+#     "GOAMD64=v2"
+#
+# build_platform "freebsd" "arm64" "" "${BINARY_NAME}-freebsd-arm64" \
+#     "FreeBSD ARM 64-bit" \
+#     ""
 
 # =============================================================================
 # Generate Checksums
@@ -389,9 +389,12 @@ echo -e "    ${GREEN}ld-musl-x86_64.so.1${NC}      → Use: ${BLUE}${BINARY_NAME
 echo ""
 echo -e "${CYAN}For Desktop/Server:${NC}"
 echo -e "  ${GREEN}Linux x86-64${NC}              → Use: ${BLUE}${BINARY_NAME}-linux-amd64${NC}"
-echo -e "  ${GREEN}macOS Intel${NC}               → Use: ${BLUE}${BINARY_NAME}-darwin-amd64${NC}"
-echo -e "  ${GREEN}macOS Apple Silicon${NC}       → Use: ${BLUE}${BINARY_NAME}-darwin-arm64${NC}"
-echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}${BINARY_NAME}-windows-amd64.exe${NC}"
+echo -e "  ${GREEN}Linux ARM64${NC}               → Use: ${BLUE}${BINARY_NAME}-linux-arm64${NC}"
+echo -e "  ${GREEN}Windows x86-64${NC}            → Use: ${BLUE}${BINARY_NAME}-windows-amd64.exe${NC}"
+echo -e "  ${GREEN}Windows x86${NC}               → Use: ${BLUE}${BINARY_NAME}-windows-i386.exe${NC}"
+echo -e "  ${GREEN}Windows ARM64${NC}             → Use: ${BLUE}${BINARY_NAME}-windows-arm64.exe${NC}"
+echo ""
+echo -e "${YELLOW}Note:${NC} macOS and FreeBSD builds are disabled due to upstream driver issues."
 echo ""
 
 echo -e "${GREEN}✓ All builds completed successfully!${NC}\n"
