@@ -396,3 +396,192 @@ echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}windows/${BINA
 echo ""
 
 echo -e "${GREEN}✓ All builds completed successfully!${NC}\n"
+
+# =============================================================================
+# OpenWRT IPK Package Generation
+# =============================================================================
+echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║            OpenWRT IPK Package Generation                  ║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
+
+# Package metadata
+PKG_NAME="hermes-euicc"
+PKG_VERSION="1.0.0"
+PKG_RELEASE="1"
+PKG_LICENSE="MIT"
+PKG_MAINTAINER="Kilimcinin Kör Oğlu <k@keremgok.tr>"
+
+# Function to create IPK for a specific architecture
+create_ipk() {
+    local ARCH=$1
+    local BINARY_PATH=$2
+    local ARCH_DESC=$3
+
+    if [ ! -f "$BINARY_PATH" ]; then
+        echo -e "${YELLOW}⚠ Skipping ${ARCH}: binary not found${NC}"
+        return 1
+    fi
+
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}📦 Architecture:${NC} ${ARCH_DESC}"
+    echo -e "${BLUE}🎯 Target:${NC}       ${ARCH}"
+
+    local IPK_BUILD_DIR="${BUILD_DIR}/ipk-${ARCH}"
+    local IPK_CONTROL_DIR="${IPK_BUILD_DIR}/CONTROL"
+    local IPK_DATA_DIR="${IPK_BUILD_DIR}/data"
+    local IPK_FILE="${BUILD_DIR}/openwrt/${PKG_NAME}_${PKG_VERSION}-${PKG_RELEASE}_${ARCH}.ipk"
+
+    # Clean and create directories
+    rm -rf "${IPK_BUILD_DIR}"
+    mkdir -p "${IPK_CONTROL_DIR}" "${IPK_DATA_DIR}/usr/bin"
+
+    # Copy binary
+    cp "${BINARY_PATH}" "${IPK_DATA_DIR}/usr/bin/hermes-euicc"
+    chmod 755 "${IPK_DATA_DIR}/usr/bin/hermes-euicc"
+
+    # Create control file
+    cat > "${IPK_CONTROL_DIR}/control" << EOF
+Package: ${PKG_NAME}
+Version: ${PKG_VERSION}-${PKG_RELEASE}
+Depends: libc, coreutils, coreutils-timeout
+Provides: hermes-euicc
+Section: utils
+Architecture: ${ARCH}
+Installed-Size: $(du -sb "${IPK_DATA_DIR}" | cut -f1)
+Maintainer: ${PKG_MAINTAINER}
+Description: eSIM profile management tool for eUICC devices
+ Hermes eUICC Manager is a command-line tool for managing eSIM profiles
+ on eUICC-enabled devices. Supports QMI, MBIM, and AT command drivers.
+ .
+ Features:
+  - Profile listing, enabling, disabling, and deletion
+  - Profile download via activation codes
+  - SM-DS discovery and automatic profile download
+  - Notification management
+  - Chip information display
+  - Cross-platform driver support (QMI, MBIM, AT)
+  - UCI configuration support for OpenWRT
+EOF
+
+    # Create postinst script
+    cat > "${IPK_CONTROL_DIR}/postinst" << 'POSTINST_EOF'
+#!/bin/sh
+# Initialize hermes-euicc UCI config if it doesn't exist
+if [ ! -f /etc/config/hermes-euicc ]; then
+    touch /etc/config/hermes-euicc
+fi
+
+# Ensure hermes-euicc section exists with defaults
+if ! uci -q get hermes-euicc.hermes-euicc >/dev/null 2>&1; then
+    uci set hermes-euicc.hermes-euicc='hermes-euicc'
+    uci set hermes-euicc.hermes-euicc.driver='auto'
+    uci set hermes-euicc.hermes-euicc.device=''
+    uci set hermes-euicc.hermes-euicc.slot='1'
+    uci set hermes-euicc.hermes-euicc.timeout='30'
+    uci commit hermes-euicc
+fi
+
+echo "Hermes eUICC Manager installed successfully!"
+echo "Usage: hermes-euicc --help"
+exit 0
+POSTINST_EOF
+    chmod 755 "${IPK_CONTROL_DIR}/postinst"
+
+    # Create conffiles (mark UCI config as configuration file)
+    cat > "${IPK_CONTROL_DIR}/conffiles" << 'EOF'
+/etc/config/hermes-euicc
+EOF
+
+    # Build IPK package
+    cd "${IPK_BUILD_DIR}"
+
+    # Create debian-binary
+    echo "2.0" > debian-binary
+
+    # Create control.tar.gz
+    tar -C CONTROL -czf control.tar.gz --owner=0 --group=0 --numeric-owner .
+
+    # Create data.tar.gz
+    tar -C data -czf data.tar.gz --owner=0 --group=0 --numeric-owner .
+
+    # Create IPK (tar.gz archive)
+    tar -czf "${IPK_FILE}" debian-binary control.tar.gz data.tar.gz
+
+    # Verify IPK was created
+    if [ -f "${IPK_FILE}" ]; then
+        local SIZE=$(du -h "${IPK_FILE}" | cut -f1)
+        echo -e "${GREEN}✓ Success!${NC} IPK: ${SIZE}"
+        echo -e "${BLUE}   ${IPK_FILE##*/}${NC}"
+        echo ""
+
+        # Cleanup build directory
+        cd "${SCRIPT_DIR}"
+        rm -rf "${IPK_BUILD_DIR}"
+        return 0
+    else
+        echo -e "${RED}✗ Failed to create IPK${NC}\n"
+        return 1
+    fi
+}
+
+# Create IPK for each OpenWRT architecture
+IPK_COUNT=0
+
+# MIPS
+if create_ipk "mips" "${BUILD_DIR}/openwrt/${BINARY_NAME}-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "mipsel" "${BUILD_DIR}/openwrt/${BINARY_NAME}-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "mips64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-mips64" "MIPS64 BE (Cavium Octeon)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "mips64el" "${BUILD_DIR}/openwrt/${BINARY_NAME}-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+# ARM
+if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/openwrt/${BINARY_NAME}-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/openwrt/${BINARY_NAME}-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "aarch64_generic" "${BUILD_DIR}/openwrt/${BINARY_NAME}-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+# x86
+if create_ipk "i386_pentium4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-x86" "x86 32-bit (Legacy routers)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+if create_ipk "x86_64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-x86_64" "x86-64 (PC Engines APU, VMs)"; then
+    IPK_COUNT=$((IPK_COUNT + 1))
+fi
+
+# Summary
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}✓ IPK Generation Complete!${NC}"
+echo -e "${BLUE}  Created ${IPK_COUNT} IPK packages in:${NC} ${BUILD_DIR}/openwrt/"
+echo ""
+echo -e "${YELLOW}Installation:${NC}"
+echo -e "  opkg update"
+echo -e "  opkg install /tmp/hermes-euicc_*.ipk"
+echo ""
+echo -e "${YELLOW}Usage:${NC}"
+echo -e "  hermes-euicc --help"
+echo -e "  hermes-euicc list"
+echo ""
+
+echo -e "${GREEN}✓ All builds and packages completed successfully!${NC}\n"
