@@ -466,22 +466,29 @@ EOF
     # Create postinst script
     cat > "${IPK_CONTROL_DIR}/postinst" << 'POSTINST_EOF'
 #!/bin/sh
-# Initialize hermes-euicc UCI config if it doesn't exist
-if [ ! -f /etc/config/hermes-euicc ]; then
-    touch /etc/config/hermes-euicc
-fi
-
-# Ensure hermes-euicc section exists with defaults
+# Initialize hermes-euicc UCI config only on first installation
+# Check if config section exists - if not, this is first install
 if ! uci -q get hermes-euicc.hermes-euicc >/dev/null 2>&1; then
+    # First installation - create config file with defaults
+    if [ ! -f /etc/config/hermes-euicc ]; then
+        touch /etc/config/hermes-euicc
+    fi
+
     uci set hermes-euicc.hermes-euicc='hermes-euicc'
     uci set hermes-euicc.hermes-euicc.driver='auto'
     uci set hermes-euicc.hermes-euicc.device=''
     uci set hermes-euicc.hermes-euicc.slot='1'
     uci set hermes-euicc.hermes-euicc.timeout='30'
     uci commit hermes-euicc
+
+    echo "Hermes eUICC Manager installed successfully!"
+    echo "Default configuration created in /etc/config/hermes-euicc"
+else
+    # Upgrade - preserve existing configuration
+    echo "Hermes eUICC Manager upgraded successfully!"
+    echo "Your existing configuration has been preserved."
 fi
 
-echo "Hermes eUICC Manager installed successfully!"
 echo "Usage: hermes-euicc --help"
 exit 0
 POSTINST_EOF
