@@ -136,26 +136,25 @@ install_go() {
 # Check Go installation
 check_go_installation
 
-# Create build directories
-mkdir -p ${BUILD_DIR}/{linux,openwrt,darwin,windows,freebsd}
+# Create build directory (no subdirectories needed)
+mkdir -p ${BUILD_DIR}
 
 # Enhanced build function with optimization support
 build_platform() {
     local GOOS=$1
     local GOARCH=$2
     local GOARM=$3
-    local OUTPUT_DIR=$4
-    local OUTPUT_NAME=$5
-    local DESCRIPTION=$6
-    local OPT_FLAGS=$7  # Optimization flags like GOMIPS=softfloat
-    local BUILD_TAGS=$8  # Build tags like "openwrt"
+    local OUTPUT_NAME=$4
+    local DESCRIPTION=$5
+    local OPT_FLAGS=$6  # Optimization flags like GOMIPS=softfloat
+    local BUILD_TAGS=$7  # Build tags like "openwrt"
 
-    local OUTPUT_PATH="${BUILD_DIR}/${OUTPUT_DIR}/${OUTPUT_NAME}"
+    local OUTPUT_PATH="${BUILD_DIR}/${OUTPUT_NAME}"
 
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${MAGENTA}📦 Platform:${NC}  ${DESCRIPTION}"
     echo -e "${BLUE}🎯 Target:${NC}    ${GOOS}/${GOARCH}$([ -n "$GOARM" ] && echo "/v${GOARM}")"
-    echo -e "${YELLOW}💾 Output:${NC}    ${OUTPUT_DIR}/${OUTPUT_NAME}"
+    echo -e "${YELLOW}💾 Output:${NC}    ${OUTPUT_NAME}"
 
     # Show optimization info
     if [ -n "$OPT_FLAGS" ]; then
@@ -221,15 +220,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              Linux Desktop/Server Platforms                ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "linux" "amd64" "" "linux" "${BINARY_NAME}-amd64" \
+build_platform "linux" "amd64" "" "${BINARY_NAME}-linux-amd64" \
     "Linux x86-64 (Modern PCs, Servers)" \
     "GOAMD64=v2"
 
-build_platform "linux" "386" "" "linux" "${BINARY_NAME}-i386" \
+build_platform "linux" "386" "" "${BINARY_NAME}-linux-i386" \
     "Linux x86 32-bit (Legacy PCs)" \
     ""
 
-build_platform "linux" "arm64" "" "linux" "${BINARY_NAME}-arm64" \
+build_platform "linux" "arm64" "" "${BINARY_NAME}-linux-arm64" \
     "Linux ARM 64-bit (Raspberry Pi 4+, Servers)" \
     ""
 
@@ -241,45 +240,45 @@ echo -e "${GREEN}║           OpenWRT/Embedded Linux (Routers/IoT)             
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
 # MIPS Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "mips" "" "openwrt" "${BINARY_NAME}-openwrt-mips" \
+build_platform "linux" "mips" "" "${BINARY_NAME}-openwrt-mips" \
     "MIPS BE (Atheros AR/QCA, TP-Link, GL.iNet AR/XE, Ubiquiti)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mipsle" "" "openwrt" "${BINARY_NAME}-openwrt-mipsle" \
+build_platform "linux" "mipsle" "" "${BINARY_NAME}-openwrt-mipsle" \
     "MIPS LE (MediaTek MT76xx, GL.iNet MT, Ralink)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mips64" "" "openwrt" "${BINARY_NAME}-openwrt-mips64" \
+build_platform "linux" "mips64" "" "${BINARY_NAME}-openwrt-mips64" \
     "MIPS64 BE (Cavium Octeon, EdgeRouter Pro)" \
     "GOMIPS64=softfloat" "openwrt"
 
-build_platform "linux" "mips64le" "" "openwrt" "${BINARY_NAME}-openwrt-mips64le" \
+build_platform "linux" "mips64le" "" "${BINARY_NAME}-openwrt-mips64le" \
     "MIPS64 LE (Cavium Octeon Little-Endian)" \
     "GOMIPS64=softfloat" "openwrt"
 
 # ARM Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "arm" "5" "openwrt" "${BINARY_NAME}-openwrt-arm_v5" \
+build_platform "linux" "arm" "5" "${BINARY_NAME}-openwrt-arm_v5" \
     "ARM v5 (Kirkwood, Old NAS devices)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "6" "openwrt" "${BINARY_NAME}-openwrt-arm_v6" \
+build_platform "linux" "arm" "6" "${BINARY_NAME}-openwrt-arm_v6" \
     "ARM v6 (Raspberry Pi Zero/1, BCM2835)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "7" "openwrt" "${BINARY_NAME}-openwrt-arm_v7" \
+build_platform "linux" "arm" "7" "${BINARY_NAME}-openwrt-arm_v7" \
     "ARM v7 (IPQ40xx, GL.iNet B1300, Raspberry Pi 2/3)" \
     "" "openwrt"
 
-build_platform "linux" "arm64" "" "openwrt" "${BINARY_NAME}-openwrt-arm64" \
+build_platform "linux" "arm64" "" "${BINARY_NAME}-openwrt-arm64" \
     "ARM64 (MT7622/MT7986, IPQ807x, BananaPi R3/R4, GL.iNet MT6000)" \
     "" "openwrt"
 
 # x86 Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "386" "" "openwrt" "${BINARY_NAME}-openwrt-x86" \
+build_platform "linux" "386" "" "${BINARY_NAME}-openwrt-x86" \
     "x86 32-bit (Legacy PC Engines, Old x86 routers)" \
     "" "openwrt"
 
-build_platform "linux" "amd64" "" "openwrt" "${BINARY_NAME}-openwrt-x86_64" \
+build_platform "linux" "amd64" "" "${BINARY_NAME}-openwrt-x86_64" \
     "x86-64 (PC Engines APU, Protectli, x86 routers, VMs)" \
     "GOAMD64=v2" "openwrt"
 
@@ -290,11 +289,11 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                     macOS Platforms                        ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "darwin" "amd64" "" "darwin" "${BINARY_NAME}-amd64" \
+build_platform "darwin" "amd64" "" "${BINARY_NAME}-darwin-amd64" \
     "macOS Intel (x86-64)" \
     "GOAMD64=v2"
 
-build_platform "darwin" "arm64" "" "darwin" "${BINARY_NAME}-arm64" \
+build_platform "darwin" "arm64" "" "${BINARY_NAME}-darwin-arm64" \
     "macOS Apple Silicon (M1/M2/M3/M4)" \
     ""
 
@@ -305,15 +304,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    Windows Platforms                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "windows" "amd64" "" "windows" "${BINARY_NAME}-amd64.exe" \
+build_platform "windows" "amd64" "" "${BINARY_NAME}-windows-amd64.exe" \
     "Windows x86-64 (64-bit)" \
     "GOAMD64=v2"
 
-build_platform "windows" "386" "" "windows" "${BINARY_NAME}-i386.exe" \
+build_platform "windows" "386" "" "${BINARY_NAME}-windows-i386.exe" \
     "Windows x86 (32-bit)" \
     ""
 
-build_platform "windows" "arm64" "" "windows" "${BINARY_NAME}-arm64.exe" \
+build_platform "windows" "arm64" "" "${BINARY_NAME}-windows-arm64.exe" \
     "Windows ARM64 (Surface Pro X, ARM laptops)" \
     ""
 
@@ -324,11 +323,11 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    FreeBSD Platforms                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "freebsd" "amd64" "" "freebsd" "${BINARY_NAME}-amd64" \
+build_platform "freebsd" "amd64" "" "${BINARY_NAME}-freebsd-amd64" \
     "FreeBSD x86-64" \
     "GOAMD64=v2"
 
-build_platform "freebsd" "arm64" "" "freebsd" "${BINARY_NAME}-arm64" \
+build_platform "freebsd" "arm64" "" "${BINARY_NAME}-freebsd-arm64" \
     "FreeBSD ARM 64-bit" \
     ""
 
@@ -338,17 +337,9 @@ build_platform "freebsd" "arm64" "" "freebsd" "${BINARY_NAME}-arm64" \
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}Generating checksums...${NC}"
 
-# Generate SHA256 checksums for each directory
-for dir in linux openwrt darwin windows freebsd; do
-    if [ -d "${BUILD_DIR}/${dir}" ] && [ "$(ls -A ${BUILD_DIR}/${dir} 2>/dev/null)" ]; then
-        (cd ${BUILD_DIR}/${dir} && sha256sum ${BINARY_NAME}* > SHA256SUMS 2>/dev/null) && \
-            echo -e "${GREEN}✓ ${dir}/SHA256SUMS created${NC}"
-    fi
-done
-
-# Generate master checksum file
-find ${BUILD_DIR} -name "${BINARY_NAME}*" -type f ! -name "SHA256SUMS" -exec sha256sum {} \; > ${BUILD_DIR}/SHA256SUMS.txt 2>/dev/null && \
-    echo -e "${GREEN}✓ Master SHA256SUMS.txt created${NC}"
+# Generate single SHA256SUMS file for all binaries
+(cd ${BUILD_DIR} && sha256sum ${BINARY_NAME}* > SHA256SUMS 2>/dev/null) && \
+    echo -e "${GREEN}✓ SHA256SUMS created${NC}"
 
 echo ""
 
@@ -365,16 +356,17 @@ echo -e "${NC}"
 
 echo -e "${CYAN}Build Statistics:${NC}"
 echo -e "  Output directory:    ${BUILD_DIR}"
+echo -e "  Version:             ${PKG_VERSION}-${PKG_RELEASE}"
 
-for dir in linux openwrt darwin windows freebsd; do
-    if [ -d "${BUILD_DIR}/${dir}" ]; then
-        COUNT=$(ls -1 ${BUILD_DIR}/${dir}/${BINARY_NAME}* 2>/dev/null | grep -v SHA256SUMS | wc -l)
-        [ $COUNT -gt 0 ] && echo -e "  ${dir}/ binaries:     ${COUNT}"
-    fi
-done
-
-TOTAL=$(find ${BUILD_DIR} -name "${BINARY_NAME}*" -type f ! -name "SHA256SUMS*" | wc -l)
+# Count binaries
+TOTAL=$(ls -1 ${BUILD_DIR}/${BINARY_NAME}* 2>/dev/null | grep -v SHA256SUMS | wc -l)
 echo -e "  ${GREEN}Total binaries:      ${TOTAL}${NC}"
+
+# Count IPK packages
+IPK_TOTAL=$(ls -1 ${BUILD_DIR}/${BINARY_NAME}_*.ipk 2>/dev/null | wc -l)
+if [ $IPK_TOTAL -gt 0 ]; then
+    echo -e "  ${GREEN}IPK packages:        ${IPK_TOTAL}${NC}"
+fi
 echo ""
 
 # =============================================================================
@@ -386,17 +378,17 @@ echo -e "${CYAN}Build Directory:${NC} ${BLUE}build/${PKG_VERSION}/${NC}"
 echo ""
 echo -e "${CYAN}For OpenWRT/Embedded Routers:${NC}"
 echo -e "  Check architecture: ${MAGENTA}ls -la /lib/ld-musl-*.so.1${NC}"
-echo -e "    ${GREEN}ld-musl-mips-sf.so.1${NC}     → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-mips${NC}"
-echo -e "    ${GREEN}ld-musl-mipsel-sf.so.1${NC}   → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-mipsle${NC}"
-echo -e "    ${GREEN}ld-musl-armhf.so.1${NC}       → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-arm_v7${NC}"
-echo -e "    ${GREEN}ld-musl-aarch64.so.1${NC}     → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-arm64${NC}"
-echo -e "    ${GREEN}ld-musl-x86_64.so.1${NC}      → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-x86_64${NC}"
+echo -e "    ${GREEN}ld-musl-mips-sf.so.1${NC}     → Use: ${BLUE}${BINARY_NAME}-openwrt-mips${NC}"
+echo -e "    ${GREEN}ld-musl-mipsel-sf.so.1${NC}   → Use: ${BLUE}${BINARY_NAME}-openwrt-mipsle${NC}"
+echo -e "    ${GREEN}ld-musl-armhf.so.1${NC}       → Use: ${BLUE}${BINARY_NAME}-openwrt-arm_v7${NC}"
+echo -e "    ${GREEN}ld-musl-aarch64.so.1${NC}     → Use: ${BLUE}${BINARY_NAME}-openwrt-arm64${NC}"
+echo -e "    ${GREEN}ld-musl-x86_64.so.1${NC}      → Use: ${BLUE}${BINARY_NAME}-openwrt-x86_64${NC}"
 echo ""
 echo -e "${CYAN}For Desktop/Server:${NC}"
-echo -e "  ${GREEN}Linux x86-64${NC}              → Use: ${BLUE}${PKG_VERSION}/linux/${BINARY_NAME}-amd64${NC}"
-echo -e "  ${GREEN}macOS Intel${NC}               → Use: ${BLUE}${PKG_VERSION}/darwin/${BINARY_NAME}-amd64${NC}"
-echo -e "  ${GREEN}macOS Apple Silicon${NC}       → Use: ${BLUE}${PKG_VERSION}/darwin/${BINARY_NAME}-arm64${NC}"
-echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}${PKG_VERSION}/windows/${BINARY_NAME}-amd64.exe${NC}"
+echo -e "  ${GREEN}Linux x86-64${NC}              → Use: ${BLUE}${BINARY_NAME}-linux-amd64${NC}"
+echo -e "  ${GREEN}macOS Intel${NC}               → Use: ${BLUE}${BINARY_NAME}-darwin-amd64${NC}"
+echo -e "  ${GREEN}macOS Apple Silicon${NC}       → Use: ${BLUE}${BINARY_NAME}-darwin-arm64${NC}"
+echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}${BINARY_NAME}-windows-amd64.exe${NC}"
 echo ""
 
 echo -e "${GREEN}✓ All builds completed successfully!${NC}\n"
@@ -433,7 +425,7 @@ create_ipk() {
     local IPK_BUILD_DIR="${BUILD_DIR}/ipk-${ARCH}"
     local IPK_CONTROL_DIR="${IPK_BUILD_DIR}/CONTROL"
     local IPK_DATA_DIR="${IPK_BUILD_DIR}/data"
-    local IPK_FILE="${BUILD_DIR}/openwrt/${PKG_NAME}_${PKG_VERSION}-${PKG_RELEASE}_${ARCH}.ipk"
+    local IPK_FILE="${BUILD_DIR}/${PKG_NAME}_${PKG_VERSION}-${PKG_RELEASE}_${ARCH}.ipk"
 
     # Clean and create directories
     rm -rf "${IPK_BUILD_DIR}"
@@ -539,52 +531,52 @@ EOF
 IPK_COUNT=0
 
 # MIPS
-if create_ipk "mips" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
+if create_ipk "mips" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mipsel" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
+if create_ipk "mipsel" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
+if create_ipk "mips64" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64el" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
+if create_ipk "mips64el" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # ARM
-if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
+if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
+if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
+if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "aarch64_generic" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
+if create_ipk "aarch64_generic" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # x86
-if create_ipk "i386_pentium4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
+if create_ipk "i386_pentium4" "${BUILD_DIR}/${BINARY_NAME}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "x86_64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
+if create_ipk "x86_64" "${BUILD_DIR}/${BINARY_NAME}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # Summary
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${GREEN}✓ IPK Generation Complete!${NC}"
-echo -e "${BLUE}  Created ${IPK_COUNT} IPK packages in:${NC} ${BUILD_DIR}/openwrt/"
+echo -e "${BLUE}  Created ${IPK_COUNT} IPK packages in:${NC} ${BUILD_DIR}/"
 echo ""
 echo -e "${YELLOW}Installation:${NC}"
 echo -e "  opkg update"
