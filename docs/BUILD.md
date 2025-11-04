@@ -1,6 +1,6 @@
 # Build Guide - Hermes eUICC Manager
 
-Comprehensive build instructions for all 20 supported platforms and architectures.
+Comprehensive build instructions for 15 actively supported platforms and architectures.
 
 ## Table of Contents
 
@@ -41,12 +41,14 @@ go build -o hermes-euicc .
 
 ```bash
 cd app
-go build -ldflags="-s -w" -trimpath -o hermes-euicc .
+go build -ldflags="-s -X main.Version=1.0.0 -X main.Release=1" -trimpath -o hermes-euicc .
 ```
 
 Flags explained:
 
-- `-ldflags="-s -w"`: Remove debug information and symbol table
+- `-ldflags="-s"`: Remove debug information and symbol table
+- `-X main.Version=1.0.0`: Inject version number into binary
+- `-X main.Release=1`: Inject release number into binary
 - `-trimpath`: Remove file path information
 - `CGO_ENABLED=0`: Static linking (no C dependencies)
 
@@ -54,7 +56,7 @@ Flags explained:
 
 ### build-all.sh - One Script for All Platforms
 
-The `build-all.sh` script builds for **all 20 platforms** with a single command:
+The `build-all.sh` script builds for **15 active platforms** with a single command:
 
 ```bash
 cd app
@@ -63,60 +65,70 @@ cd app
 
 **Features:**
 - Auto-installs Go 1.24.0 if not found
-- Builds 20 platforms (Linux, OpenWRT, macOS, Windows, FreeBSD)
+- **Auto-increments release numbers** using git commit count
+- **Injects version info** into binaries via ldflags
+- Builds 15 platforms (Linux, OpenWRT, Windows) - macOS/FreeBSD disabled due to upstream issues
 - Platform-specific optimizations (GOMIPS=softfloat, GOAMD64=v2)
-- Organized output directories
-- SHA256SUMS generation per directory + master file
+- **Version-specific output directory** (build/1.0.0/)
+- **Versioned binary filenames** (hermes-euicc-1.0.0-48-linux-amd64)
+- **IPK package generation** for all 10 OpenWRT architectures
+- SHA256SUMS generation
 - Colored output with progress indication
 - Continues on errors (doesn't stop the entire build)
 
 **Output structure:**
 ```
 build/
-├── linux/
-│   ├── hermes-euicc-amd64
-│   ├── hermes-euicc-i386
-│   ├── hermes-euicc-arm64
-│   └── SHA256SUMS
-├── openwrt/
-│   ├── hermes-euicc-mips
-│   ├── hermes-euicc-mipsle
-│   ├── hermes-euicc-mips64
-│   ├── hermes-euicc-mips64le
-│   ├── hermes-euicc-arm_v5
-│   ├── hermes-euicc-arm_v6
-│   ├── hermes-euicc-arm_v7
-│   ├── hermes-euicc-arm64
-│   ├── hermes-euicc-x86
-│   ├── hermes-euicc-x86_64
-│   └── SHA256SUMS
-├── darwin/
-│   ├── hermes-euicc-amd64
-│   ├── hermes-euicc-arm64
-│   └── SHA256SUMS
-├── windows/
-│   ├── hermes-euicc-amd64.exe
-│   ├── hermes-euicc-i386.exe
-│   ├── hermes-euicc-arm64.exe
-│   └── SHA256SUMS
-├── freebsd/
-│   ├── hermes-euicc-amd64
-│   ├── hermes-euicc-arm64
-│   └── SHA256SUMS
-└── SHA256SUMS.txt (master)
+└── 1.0.0/              # Version-specific directory
+    ├── hermes-euicc-1.0.0-48-linux-amd64
+    ├── hermes-euicc-1.0.0-48-linux-i386
+    ├── hermes-euicc-1.0.0-48-linux-arm64
+    ├── hermes-euicc-1.0.0-48-openwrt-mips
+    ├── hermes-euicc-1.0.0-48-openwrt-mipsle
+    ├── hermes-euicc-1.0.0-48-openwrt-mips64
+    ├── hermes-euicc-1.0.0-48-openwrt-mips64le
+    ├── hermes-euicc-1.0.0-48-openwrt-arm_v5
+    ├── hermes-euicc-1.0.0-48-openwrt-arm_v6
+    ├── hermes-euicc-1.0.0-48-openwrt-arm_v7
+    ├── hermes-euicc-1.0.0-48-openwrt-arm64
+    ├── hermes-euicc-1.0.0-48-openwrt-x86
+    ├── hermes-euicc-1.0.0-48-openwrt-x86_64
+    ├── hermes-euicc-1.0.0-48-windows-amd64.exe
+    ├── hermes-euicc-1.0.0-48-windows-i386.exe
+    ├── hermes-euicc-1.0.0-48-windows-arm64.exe
+    ├── hermes-euicc_1.0.0-48_mips.ipk
+    ├── hermes-euicc_1.0.0-48_mipsle.ipk
+    ├── hermes-euicc_1.0.0-48_mips64.ipk
+    ├── hermes-euicc_1.0.0-48_mips64le.ipk
+    ├── hermes-euicc_1.0.0-48_arm_cortex-a5.ipk
+    ├── hermes-euicc_1.0.0-48_arm_cortex-a7.ipk
+    ├── hermes-euicc_1.0.0-48_arm_cortex-a9.ipk
+    ├── hermes-euicc_1.0.0-48_aarch64.ipk
+    ├── hermes-euicc_1.0.0-48_x86.ipk
+    ├── hermes-euicc_1.0.0-48_x86_64.ipk
+    └── SHA256SUMS
 ```
 
-**Total: 20 binaries**
+**Total: 16 binaries + 10 IPK packages**
 - Linux: 3 (amd64, i386, arm64)
-- OpenWRT: 10 (MIPS, ARM variants)
-- macOS: 2 (Intel, Apple Silicon)
+- OpenWRT: 10 (MIPS, ARM variants) + 10 IPK packages
 - Windows: 3 (x64, x86, ARM64)
-- FreeBSD: 2 (amd64, arm64)
+- macOS: Disabled (upstream library missing drivers)
+- FreeBSD: Disabled (upstream library missing drivers)
+
+**Version numbering:**
+- Format: `{PKG_VERSION}-{PKG_RELEASE}` (e.g., `1.0.0-48`)
+- PKG_VERSION: Manually set in build-all.sh (currently 1.0.0)
+- PKG_RELEASE: Auto-incremented via `git rev-list --count HEAD`
+- Each new git commit automatically increments the release number
 
 **Build script optimizations:**
+- Version injection via `-ldflags="-X main.Version=... -X main.Release=..."`
 - OpenWRT builds use `-tags=openwrt` for UCI config support
 - MIPS uses `GOMIPS=softfloat` for FPU-less routers
+- MIPS64 uses `GOMIPS64=softfloat` for FPU-less 64-bit routers
 - x86-64 uses `GOAMD64=v2` for SSE4.2 support (2009+ CPUs)
+- CCID driver disabled on MIPS/32-bit Linux (purego v0.9.0 limitation)
 
 ## Platform-Specific Builds
 

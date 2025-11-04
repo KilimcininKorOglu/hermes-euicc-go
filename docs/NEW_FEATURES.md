@@ -2,7 +2,7 @@
 
 This document describes the new features added to the Hermes eUICC Manager CLI application, integrating the latest APIs from euicc-go library v1.2.2+.
 
-**Last Updated:** 2025-11-03
+**Last Updated:** 2025-11-04
 
 ---
 
@@ -411,11 +411,12 @@ hermes-euicc --driver at --device COM3 list  # Windows
 The CCID driver now supports all major operating systems via PC/SC framework integration.
 
 **Platform Support:**
-- ✅ **Linux** - Via pcscd daemon (pcsc-lite)
-- ✅ **macOS** - Via CryptoTokenKit framework (built-in)
+- ✅ **Linux** (amd64/arm64 only) - Via pcscd daemon (pcsc-lite)
+- ❌ **Linux** (MIPS/32-bit) - Disabled (purego v0.9.0 fakecgo limitation)
 - ✅ **Windows** - Via Smart Card service (winscard.dll)
-- ✅ **FreeBSD** - Via pcsc-lite package
-- ❌ **OpenWRT** - Disabled (binary size optimization)
+- ❌ **macOS** - Disabled (upstream library missing driver implementation)
+- ❌ **FreeBSD** - Disabled (upstream library missing driver implementation)
+- ❌ **OpenWRT** - Disabled (MIPS/embedded platforms)
 
 **Platform-Specific Requirements:**
 
@@ -430,24 +431,11 @@ sudo systemctl start pcscd
 sudo systemctl enable pcscd
 ```
 
-**macOS:**
-- No installation needed (built-in PC/SC support)
-
 **Windows:**
 - No installation needed (built-in Smart Card service)
 - Ensure "Smart Card" service is running
 
-**FreeBSD:**
-```bash
-# Install pcsc-lite
-pkg install pcsc-lite
-
-# Start service
-service pcscd start
-sysrc pcscd_enable=YES
-```
-
-**Usage (works on all platforms):**
+**Usage (Linux amd64/arm64 and Windows):**
 ```bash
 # Auto-detect CCID reader
 hermes-euicc list
@@ -455,6 +443,8 @@ hermes-euicc list
 # Manual CCID driver selection
 hermes-euicc --driver ccid list
 ```
+
+**Note:** CCID driver is disabled on MIPS and 32-bit Linux architectures due to purego v0.9.0 fakecgo limitations. Use QMI, MBIM, or AT drivers on these platforms.
 
 **Benefits:**
 - Works with any USB smart card reader
@@ -472,12 +462,18 @@ hermes-euicc --driver ccid list
 ### Build System Updates
 
 **Cross-Platform Build Script:**
-The `build-all.sh` script now builds for 20 platforms:
-- Linux: 3 architectures
-- OpenWRT: 10 architectures (CCID disabled)
-- macOS: 2 architectures
+The `build-all.sh` script now builds for 15 active platforms:
+- Linux: 3 architectures (CCID enabled on amd64/arm64 only)
+- OpenWRT: 10 architectures (CCID disabled, UCI support enabled)
 - Windows: 3 architectures
-- FreeBSD: 2 architectures
+- macOS: Disabled (upstream library issues)
+- FreeBSD: Disabled (upstream library issues)
+
+**Version Management:**
+- Auto-incrementing release numbers via git commit count
+- Version injection into binaries at build time
+- Versioned binary filenames (e.g., `hermes-euicc-1.0.0-48-linux-amd64`)
+- IPK packages with matching version numbers
 
 **Build Tags:**
 ```bash
@@ -491,8 +487,8 @@ go build -o hermes-euicc .
 **Platform Detection:**
 The application automatically detects the platform and adjusts driver availability:
 - QMI/MBIM: Linux only (kernel drivers)
-- AT: All platforms (serial port API)
-- CCID: All platforms except OpenWRT (PC/SC API)
+- AT: Linux and Windows (serial port API)
+- CCID: Linux amd64/arm64 and Windows (PC/SC API)
 
 ---
 
@@ -507,9 +503,11 @@ The application automatically detects the platform and adjusts driver availabili
 | **Chip Info** | Raw hex only | Parsed data | New feature |
 | **One-step Download** | Not available | discover-download | New feature |
 | **Selective Processing** | Not available | notification-process | New feature |
-| **AT Driver** | Linux only | Cross-platform | All OSes supported |
-| **CCID Driver** | amd64/arm64 only | Cross-platform | All OSes supported |
-| **Platform Support** | 8 platforms | 20 platforms | 150% increase |
+| **AT Driver** | Linux only | Linux + Windows | Windows support added |
+| **CCID Driver** | Not available | Linux 64-bit + Windows | New feature (limited) |
+| **Platform Support** | 8 platforms | 15 platforms | 87.5% increase |
+| **Version Management** | Manual | Auto-increment | Git-based releases |
+| **Binary Naming** | Simple | Versioned filenames | Better organization |
 | **Code Maintainability** | Manual concurrency | Library handles it | Much better |
 | **Error Handling** | Basic | Per-item detailed | Much better |
 
@@ -669,14 +667,24 @@ go mod tidy
 
 ## Changelog
 
-### v1.1.0 (2025-11-03)
-- ✅ Cross-platform AT driver support (Linux, macOS, Windows, FreeBSD)
-- ✅ Cross-platform CCID driver support (all platforms except OpenWRT)
-- ✅ Upgraded to euicc-go v1.2.2+ (fixes ExtCardResource memory parsing bug)
-- ✅ Build system supports 20 platforms (was 8)
-- ✅ Added build tags for OpenWRT (UCI support, CCID disabled)
-- ✅ Platform-specific device auto-detection for all OSes
+### v1.2.0 (2025-11-04)
+- ✅ Auto-incrementing release numbers via git commit count
+- ✅ Version injection into binaries at build time
+- ✅ Versioned binary filenames (hermes-euicc-{VERSION}-{RELEASE}-{platform}-{arch})
+- ✅ IPK package generation for all 10 OpenWRT architectures
+- ✅ CCID driver disabled on MIPS/32-bit Linux (purego v0.9.0 limitation)
+- ✅ macOS/FreeBSD builds disabled (upstream library issues - commented out for future)
+- ✅ Version-specific build directory structure (build/{VERSION}/)
 - ✅ Comprehensive documentation updates
+
+### v1.1.0 (2025-11-03)
+- ✅ AT driver Windows support (COM port implementation)
+- ✅ CCID driver support for Linux amd64/arm64 and Windows
+- ✅ Upgraded to euicc-go v1.2.2+ (fixes ExtCardResource memory parsing bug)
+- ✅ Build system supports 15 active platforms
+- ✅ Added build tags for OpenWRT (UCI support, CCID disabled)
+- ✅ Platform-specific device auto-detection
+- ✅ Config file support for non-OpenWRT platforms
 
 ### v1.0.0 (2025-11-02)
 - ✅ Added `notification-process` command
