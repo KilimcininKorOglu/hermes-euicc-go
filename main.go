@@ -151,19 +151,27 @@ type AllowedOperatorResponse struct {
 var (
 	devicePath  = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
 	driverType  = flag.String("driver", "", "Driver type: qmi, mbim, at, ccid (auto-detect if not specified)")
-	slotNumber  = flag.Int("slot", 0, "SIM slot number (0 = use UCI config)")
+	slotNumber  = flag.Int("slot", 0, "SIM slot number (0 = use config file)")
 	verbose     = flag.Bool("verbose", false, "Enable verbose logging")
-	timeout     = flag.Int("timeout", 0, "HTTP timeout in seconds (0 = use UCI config)")
+	timeout     = flag.Int("timeout", 0, "HTTP timeout in seconds (0 = use config file)")
+	configFile  = flag.String("config", "", "Config file path (default: auto-detect)")
 )
 
 func main() {
-	// Read UCI config first (defaults)
-	uciConfig := readUCIConfig()
-
-	// Parse command-line flags (override UCI config)
+	// Parse command-line flags first to get -config flag
 	flag.Parse()
 
-	// Apply UCI config values if flags weren't explicitly set
+	// Read config (UCI on OpenWRT, config file on other systems)
+	uciConfig := readUCIConfig()
+
+	// If -config flag is provided on non-OpenWRT systems, reload config from specified file
+	if *configFile != "" {
+		if config, err := readConfigFileCustom(*configFile); err == nil {
+			uciConfig = config
+		}
+	}
+
+	// Apply config values if flags weren't explicitly set
 	if *driverType == "" && uciConfig.Driver != "auto" {
 		*driverType = uciConfig.Driver
 	}

@@ -412,20 +412,43 @@ Result: ~6.4 MB (47% reduction)
 
 ## Build Tags
 
-### OpenWRT UCI Support
+### Build Tags and Configuration System
 
-OpenWRT builds require the `openwrt` build tag to enable UCI configuration reading:
+The application uses Go build tags to provide platform-specific configuration systems:
+
+#### OpenWRT Builds (UCI Configuration)
+
+OpenWRT builds require the `openwrt` build tag:
 
 ```bash
 go build -tags=openwrt -o hermes-euicc .
 ```
 
-This enables:
-- Reading from `/etc/config/hermes-euicc`
-- Integration with LuCI web interface
-- Automatic configuration loading
+**Files compiled:**
+- `uci_openwrt.go` - Reads from `/etc/config/hermes-euicc`
+- Excludes `config.go` and non-OpenWRT `uci_other.go`
 
-Non-OpenWRT builds don't need this tag and will use built-in defaults.
+**Features:**
+- UCI configuration support
+- LuCI web interface integration
+- Automatic configuration from OpenWRT system
+
+#### Non-OpenWRT Builds (Config File)
+
+Standard builds (Linux, macOS, Windows, FreeBSD) don't need tags:
+
+```bash
+go build -o hermes-euicc .
+```
+
+**Files compiled:**
+- `config.go` - Config file parser (key=value format)
+- `uci_other.go` - Config file loader with auto-detection
+
+**Features:**
+- Config file support (./hermes-euicc.conf, ~/.config/hermes-euicc/config, etc.)
+- `-config` flag for custom config file path
+- Platform-specific config directory support
 
 ## Troubleshooting
 

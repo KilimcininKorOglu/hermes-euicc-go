@@ -104,6 +104,111 @@ Enable detailed logging for debugging.
 hermes-euicc -verbose list
 ```
 
+### -config string
+
+Specify custom configuration file path (non-OpenWRT only).
+
+```bash
+# Use specific config file
+hermes-euicc -config /path/to/config.conf list
+
+# Config file with custom driver settings
+hermes-euicc -config ~/my-euicc.conf download --code "LPA:..."
+```
+
+**Default config file locations** (checked in order):
+1. `./hermes-euicc.conf` (current directory)
+2. `~/.config/hermes-euicc/config` (Linux/macOS/FreeBSD)
+3. `%APPDATA%\hermes-euicc\config` (Windows)
+
+See [Configuration Files](#configuration-files) section for details.
+
+## Configuration Files
+
+### OpenWRT: UCI Configuration
+
+On OpenWRT, the application reads configuration from UCI:
+
+**File:** `/etc/config/hermes-euicc`
+
+```uci
+config hermes-euicc 'hermes-euicc'
+    option driver 'auto'
+    option device ''
+    option slot '1'
+    option timeout '30'
+```
+
+**Usage:**
+```bash
+# Configure via UCI
+uci set hermes-euicc.hermes-euicc.driver='qmi'
+uci set hermes-euicc.hermes-euicc.device='/dev/cdc-wdm0'
+uci commit hermes-euicc
+
+# Use UCI settings
+hermes-euicc list
+```
+
+### Other Platforms: Config File
+
+On Linux, macOS, Windows, and FreeBSD, use a simple key=value config file:
+
+**Format:**
+```ini
+# Hermes eUICC Manager Configuration
+driver=auto
+device=
+slot=1
+timeout=30
+```
+
+**Create config file:**
+```bash
+# Linux/macOS/FreeBSD - current directory
+cat > hermes-euicc.conf << EOF
+driver=qmi
+device=/dev/cdc-wdm0
+slot=1
+timeout=30
+EOF
+
+# Linux/macOS/FreeBSD - user config directory
+mkdir -p ~/.config/hermes-euicc
+cat > ~/.config/hermes-euicc/config << EOF
+driver=at
+device=/dev/ttyUSB2
+slot=1
+timeout=30
+EOF
+
+# Windows - current directory
+echo driver=ccid > hermes-euicc.conf
+echo device= >> hermes-euicc.conf
+echo slot=1 >> hermes-euicc.conf
+echo timeout=30 >> hermes-euicc.conf
+```
+
+**Priority order:**
+1. **Command-line flags** (highest) - Always override config
+2. **Config file** - Used if flag not specified
+3. **Built-in defaults** - Used if neither provided
+
+**Examples:**
+```bash
+# Use config file in current directory
+hermes-euicc list
+
+# Override config file driver
+hermes-euicc -driver at list
+
+# Use custom config file location
+hermes-euicc -config /etc/euicc/production.conf list
+
+# Override all config settings
+hermes-euicc -driver qmi -device /dev/cdc-wdm1 -slot 2 list
+```
+
 ## Driver Selection
 
 ### Auto-Detection (Recommended)

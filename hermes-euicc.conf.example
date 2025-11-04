@@ -1,0 +1,33 @@
+# Hermes eUICC Manager Configuration File
+#
+# This file is used on non-OpenWRT systems (Linux, macOS, Windows, FreeBSD)
+# Config file locations (in priority order):
+#   1. Path specified with -config flag
+#   2. ./hermes-euicc.conf (current directory)
+#   3. ~/.config/hermes-euicc/config (Linux/macOS/FreeBSD)
+#   4. %APPDATA%\hermes-euicc\config (Windows)
+#
+# Format: key=value
+# Lines starting with # are comments
+# Command-line flags override config file values
+
+# Driver type: qmi, mbim, at, ccid, auto
+# Default: auto (auto-detect)
+driver=auto
+
+# Device path
+# Linux QMI/MBIM: /dev/cdc-wdm0
+# Linux AT: /dev/ttyUSB2
+# macOS AT: /dev/cu.usbserial
+# Windows AT: COM3
+# CCID: leave empty for auto-detect
+# Default: empty (auto-detect)
+device=
+
+# SIM slot number (1 or 2)
+# Default: 1
+slot=1
+
+# HTTP timeout in seconds
+# Default: 30
+timeout=30
