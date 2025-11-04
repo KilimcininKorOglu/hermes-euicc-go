@@ -28,10 +28,15 @@ echo -e "${NC}\n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
 BINARY_NAME="hermes-euicc"
-PKG_VERSION="1.0.0"  # Package version
-PKG_RELEASE="1"      # Release number
+PKG_VERSION="1.0.0"  # Package version (manually update for new versions)
+PKG_RELEASE=$(git rev-list --count HEAD 2>/dev/null || echo "1")  # Auto-increment with git commits
 BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}"  # Version-specific directory
 GO_VERSION="1.24.0"  # Required Go version
+
+# Package metadata
+PKG_NAME="hermes-euicc"
+PKG_LICENSE="MIT"
+PKG_MAINTAINER="Kilimcinin Kör Oğlu <k@keremgok.tr>"
 
 # Function to check and install Go if needed
 check_go_installation() {
@@ -406,12 +411,6 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║            OpenWRT IPK Package Generation                  ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-# Package metadata
-PKG_NAME="hermes-euicc"
-PKG_VERSION="1.0.0"
-PKG_RELEASE="1"
-PKG_LICENSE="MIT"
-PKG_MAINTAINER="Kilimcinin Kör Oğlu <k@keremgok.tr>"
 
 # Function to create IPK for a specific architecture
 create_ipk() {
