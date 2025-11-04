@@ -27,10 +27,10 @@ echo -e "${NC}\n"
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
-BUILD_DIR="${SCRIPT_DIR}/build"
 BINARY_NAME="hermes-euicc"
 PKG_VERSION="1.0.0"  # Package version
 PKG_RELEASE="1"      # Release number
+BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}"  # Version-specific directory
 GO_VERSION="1.24.0"  # Required Go version
 
 # Function to check and install Go if needed
@@ -221,15 +221,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              Linux Desktop/Server Platforms                ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "linux" "amd64" "" "linux" "${BINARY_NAME}-${PKG_VERSION}-amd64" \
+build_platform "linux" "amd64" "" "linux" "${BINARY_NAME}-amd64" \
     "Linux x86-64 (Modern PCs, Servers)" \
     "GOAMD64=v2"
 
-build_platform "linux" "386" "" "linux" "${BINARY_NAME}-${PKG_VERSION}-i386" \
+build_platform "linux" "386" "" "linux" "${BINARY_NAME}-i386" \
     "Linux x86 32-bit (Legacy PCs)" \
     ""
 
-build_platform "linux" "arm64" "" "linux" "${BINARY_NAME}-${PKG_VERSION}-arm64" \
+build_platform "linux" "arm64" "" "linux" "${BINARY_NAME}-arm64" \
     "Linux ARM 64-bit (Raspberry Pi 4+, Servers)" \
     ""
 
@@ -241,45 +241,45 @@ echo -e "${GREEN}║           OpenWRT/Embedded Linux (Routers/IoT)             
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
 # MIPS Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "mips" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-mips" \
+build_platform "linux" "mips" "" "openwrt" "${BINARY_NAME}-openwrt-mips" \
     "MIPS BE (Atheros AR/QCA, TP-Link, GL.iNet AR/XE, Ubiquiti)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mipsle" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-mipsle" \
+build_platform "linux" "mipsle" "" "openwrt" "${BINARY_NAME}-openwrt-mipsle" \
     "MIPS LE (MediaTek MT76xx, GL.iNet MT, Ralink)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mips64" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-mips64" \
+build_platform "linux" "mips64" "" "openwrt" "${BINARY_NAME}-openwrt-mips64" \
     "MIPS64 BE (Cavium Octeon, EdgeRouter Pro)" \
     "GOMIPS64=softfloat" "openwrt"
 
-build_platform "linux" "mips64le" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-mips64le" \
+build_platform "linux" "mips64le" "" "openwrt" "${BINARY_NAME}-openwrt-mips64le" \
     "MIPS64 LE (Cavium Octeon Little-Endian)" \
     "GOMIPS64=softfloat" "openwrt"
 
 # ARM Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "arm" "5" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-arm_v5" \
+build_platform "linux" "arm" "5" "openwrt" "${BINARY_NAME}-openwrt-arm_v5" \
     "ARM v5 (Kirkwood, Old NAS devices)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "6" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-arm_v6" \
+build_platform "linux" "arm" "6" "openwrt" "${BINARY_NAME}-openwrt-arm_v6" \
     "ARM v6 (Raspberry Pi Zero/1, BCM2835)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "7" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-arm_v7" \
+build_platform "linux" "arm" "7" "openwrt" "${BINARY_NAME}-openwrt-arm_v7" \
     "ARM v7 (IPQ40xx, GL.iNet B1300, Raspberry Pi 2/3)" \
     "" "openwrt"
 
-build_platform "linux" "arm64" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-arm64" \
+build_platform "linux" "arm64" "" "openwrt" "${BINARY_NAME}-openwrt-arm64" \
     "ARM64 (MT7622/MT7986, IPQ807x, BananaPi R3/R4, GL.iNet MT6000)" \
     "" "openwrt"
 
 # x86 Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "386" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-x86" \
+build_platform "linux" "386" "" "openwrt" "${BINARY_NAME}-openwrt-x86" \
     "x86 32-bit (Legacy PC Engines, Old x86 routers)" \
     "" "openwrt"
 
-build_platform "linux" "amd64" "" "openwrt" "${BINARY_NAME}-${PKG_VERSION}-x86_64" \
+build_platform "linux" "amd64" "" "openwrt" "${BINARY_NAME}-openwrt-x86_64" \
     "x86-64 (PC Engines APU, Protectli, x86 routers, VMs)" \
     "GOAMD64=v2" "openwrt"
 
@@ -290,11 +290,11 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                     macOS Platforms                        ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "darwin" "amd64" "" "darwin" "${BINARY_NAME}-${PKG_VERSION}-amd64" \
+build_platform "darwin" "amd64" "" "darwin" "${BINARY_NAME}-amd64" \
     "macOS Intel (x86-64)" \
     "GOAMD64=v2"
 
-build_platform "darwin" "arm64" "" "darwin" "${BINARY_NAME}-${PKG_VERSION}-arm64" \
+build_platform "darwin" "arm64" "" "darwin" "${BINARY_NAME}-arm64" \
     "macOS Apple Silicon (M1/M2/M3/M4)" \
     ""
 
@@ -305,15 +305,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    Windows Platforms                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "windows" "amd64" "" "windows" "${BINARY_NAME}-${PKG_VERSION}-amd64.exe" \
+build_platform "windows" "amd64" "" "windows" "${BINARY_NAME}-amd64.exe" \
     "Windows x86-64 (64-bit)" \
     "GOAMD64=v2"
 
-build_platform "windows" "386" "" "windows" "${BINARY_NAME}-${PKG_VERSION}-i386.exe" \
+build_platform "windows" "386" "" "windows" "${BINARY_NAME}-i386.exe" \
     "Windows x86 (32-bit)" \
     ""
 
-build_platform "windows" "arm64" "" "windows" "${BINARY_NAME}-${PKG_VERSION}-arm64.exe" \
+build_platform "windows" "arm64" "" "windows" "${BINARY_NAME}-arm64.exe" \
     "Windows ARM64 (Surface Pro X, ARM laptops)" \
     ""
 
@@ -324,11 +324,11 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    FreeBSD Platforms                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "freebsd" "amd64" "" "freebsd" "${BINARY_NAME}-${PKG_VERSION}-amd64" \
+build_platform "freebsd" "amd64" "" "freebsd" "${BINARY_NAME}-amd64" \
     "FreeBSD x86-64" \
     "GOAMD64=v2"
 
-build_platform "freebsd" "arm64" "" "freebsd" "${BINARY_NAME}-${PKG_VERSION}-arm64" \
+build_platform "freebsd" "arm64" "" "freebsd" "${BINARY_NAME}-arm64" \
     "FreeBSD ARM 64-bit" \
     ""
 
@@ -382,19 +382,21 @@ echo ""
 # =============================================================================
 echo -e "${YELLOW}Platform Selection Guide:${NC}"
 echo ""
+echo -e "${CYAN}Build Directory:${NC} ${BLUE}build/${PKG_VERSION}/${NC}"
+echo ""
 echo -e "${CYAN}For OpenWRT/Embedded Routers:${NC}"
 echo -e "  Check architecture: ${MAGENTA}ls -la /lib/ld-musl-*.so.1${NC}"
-echo -e "    ${GREEN}ld-musl-mips-sf.so.1${NC}     → Use: ${BLUE}openwrt/${BINARY_NAME}-${PKG_VERSION}-mips${NC}"
-echo -e "    ${GREEN}ld-musl-mipsel-sf.so.1${NC}   → Use: ${BLUE}openwrt/${BINARY_NAME}-${PKG_VERSION}-mipsle${NC}"
-echo -e "    ${GREEN}ld-musl-armhf.so.1${NC}       → Use: ${BLUE}openwrt/${BINARY_NAME}-${PKG_VERSION}-arm_v7${NC}"
-echo -e "    ${GREEN}ld-musl-aarch64.so.1${NC}     → Use: ${BLUE}openwrt/${BINARY_NAME}-${PKG_VERSION}-arm64${NC}"
-echo -e "    ${GREEN}ld-musl-x86_64.so.1${NC}      → Use: ${BLUE}openwrt/${BINARY_NAME}-${PKG_VERSION}-x86_64${NC}"
+echo -e "    ${GREEN}ld-musl-mips-sf.so.1${NC}     → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-mips${NC}"
+echo -e "    ${GREEN}ld-musl-mipsel-sf.so.1${NC}   → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-mipsle${NC}"
+echo -e "    ${GREEN}ld-musl-armhf.so.1${NC}       → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-arm_v7${NC}"
+echo -e "    ${GREEN}ld-musl-aarch64.so.1${NC}     → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-arm64${NC}"
+echo -e "    ${GREEN}ld-musl-x86_64.so.1${NC}      → Use: ${BLUE}${PKG_VERSION}/openwrt/${BINARY_NAME}-openwrt-x86_64${NC}"
 echo ""
 echo -e "${CYAN}For Desktop/Server:${NC}"
-echo -e "  ${GREEN}Linux x86-64${NC}              → Use: ${BLUE}linux/${BINARY_NAME}-${PKG_VERSION}-amd64${NC}"
-echo -e "  ${GREEN}macOS Intel${NC}               → Use: ${BLUE}darwin/${BINARY_NAME}-${PKG_VERSION}-amd64${NC}"
-echo -e "  ${GREEN}macOS Apple Silicon${NC}       → Use: ${BLUE}darwin/${BINARY_NAME}-${PKG_VERSION}-arm64${NC}"
-echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}windows/${BINARY_NAME}-${PKG_VERSION}-amd64.exe${NC}"
+echo -e "  ${GREEN}Linux x86-64${NC}              → Use: ${BLUE}${PKG_VERSION}/linux/${BINARY_NAME}-amd64${NC}"
+echo -e "  ${GREEN}macOS Intel${NC}               → Use: ${BLUE}${PKG_VERSION}/darwin/${BINARY_NAME}-amd64${NC}"
+echo -e "  ${GREEN}macOS Apple Silicon${NC}       → Use: ${BLUE}${PKG_VERSION}/darwin/${BINARY_NAME}-arm64${NC}"
+echo -e "  ${GREEN}Windows 64-bit${NC}            → Use: ${BLUE}${PKG_VERSION}/windows/${BINARY_NAME}-amd64.exe${NC}"
 echo ""
 
 echo -e "${GREEN}✓ All builds completed successfully!${NC}\n"
@@ -537,45 +539,45 @@ EOF
 IPK_COUNT=0
 
 # MIPS
-if create_ipk "mips" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
+if create_ipk "mips" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mipsel" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
+if create_ipk "mipsel" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-mips64" "MIPS64 BE (Cavium Octeon)"; then
+if create_ipk "mips64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64el" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
+if create_ipk "mips64el" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # ARM
-if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
+if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
+if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
+if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "aarch64_generic" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
+if create_ipk "aarch64_generic" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # x86
-if create_ipk "i386_pentium4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-x86" "x86 32-bit (Legacy routers)"; then
+if create_ipk "i386_pentium4" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "x86_64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-${PKG_VERSION}-x86_64" "x86-64 (PC Engines APU, VMs)"; then
+if create_ipk "x86_64" "${BUILD_DIR}/openwrt/${BINARY_NAME}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
