@@ -1,4 +1,4 @@
-//go:build linux
+//go:build linux && (amd64 || arm64)
 
 // Copyright (c) 2025 Kilimcinin Kör Oğlu <k@keremgok.tr>
 // SPDX-License-Identifier: MIT
