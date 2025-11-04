@@ -19,6 +19,12 @@ import (
 	sgp22 "github.com/KilimcininKorOglu/euicc-go/v2"
 )
 
+// Version information (set by build script or ldflags)
+var (
+	Version = "1.0.0" // Application version
+	Release = "1"     // Release number
+)
+
 // Response structures for JSON output
 type Response struct {
 	Success bool        `json:"success"`
@@ -401,7 +407,7 @@ func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
 func handleVersion() {
 	outputSuccess(map[string]string{
 		"name":      "Hermes eUICC Manager",
-		"version":   "1.0.0",
+		"version":   fmt.Sprintf("%s-%s", Version, Release),
 		"copyright": "Copyright (c) 2025 Kilimcinin Kör Oğlu <k@keremgok.tr>",
 		"license":   "MIT",
 	})

@@ -170,9 +170,12 @@ build_platform() {
     local TAGS_FLAG=""
     [ -n "$BUILD_TAGS" ] && TAGS_FLAG="-tags=$BUILD_TAGS"
 
+    # Set version information via ldflags
+    local LDFLAGS="-s -w -X main.Version=${PKG_VERSION} -X main.Release=${PKG_RELEASE}"
+
     if (cd ${SOURCE_DIR} && eval $BUILD_CMD go build \
         $TAGS_FLAG \
-        -ldflags=-s \
+        -ldflags="$LDFLAGS" \
         -trimpath \
         -o "${OUTPUT_PATH}" \
         . 2>&1 | grep -v "^#" || true); then
