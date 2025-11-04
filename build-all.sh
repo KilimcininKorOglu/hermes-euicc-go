@@ -223,15 +223,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              Linux Desktop/Server Platforms                ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "linux" "amd64" "" "${BINARY_NAME}-linux-amd64" \
+build_platform "linux" "amd64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-linux-amd64" \
     "Linux x86-64 (Modern PCs, Servers)" \
     "GOAMD64=v2"
 
-build_platform "linux" "386" "" "${BINARY_NAME}-linux-i386" \
+build_platform "linux" "386" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-linux-i386" \
     "Linux x86 32-bit (Legacy PCs)" \
     ""
 
-build_platform "linux" "arm64" "" "${BINARY_NAME}-linux-arm64" \
+build_platform "linux" "arm64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-linux-arm64" \
     "Linux ARM 64-bit (Raspberry Pi 4+, Servers)" \
     ""
 
@@ -243,45 +243,45 @@ echo -e "${GREEN}║           OpenWRT/Embedded Linux (Routers/IoT)             
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
 # MIPS Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "mips" "" "${BINARY_NAME}-openwrt-mips" \
+build_platform "linux" "mips" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips" \
     "MIPS BE (Atheros AR/QCA, TP-Link, GL.iNet AR/XE, Ubiquiti)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mipsle" "" "${BINARY_NAME}-openwrt-mipsle" \
+build_platform "linux" "mipsle" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mipsle" \
     "MIPS LE (MediaTek MT76xx, GL.iNet MT, Ralink)" \
     "GOMIPS=softfloat" "openwrt"
 
-build_platform "linux" "mips64" "" "${BINARY_NAME}-openwrt-mips64" \
+build_platform "linux" "mips64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64" \
     "MIPS64 BE (Cavium Octeon, EdgeRouter Pro)" \
     "GOMIPS64=softfloat" "openwrt"
 
-build_platform "linux" "mips64le" "" "${BINARY_NAME}-openwrt-mips64le" \
+build_platform "linux" "mips64le" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64le" \
     "MIPS64 LE (Cavium Octeon Little-Endian)" \
     "GOMIPS64=softfloat" "openwrt"
 
 # ARM Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "arm" "5" "${BINARY_NAME}-openwrt-arm_v5" \
+build_platform "linux" "arm" "5" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v5" \
     "ARM v5 (Kirkwood, Old NAS devices)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "6" "${BINARY_NAME}-openwrt-arm_v6" \
+build_platform "linux" "arm" "6" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v6" \
     "ARM v6 (Raspberry Pi Zero/1, BCM2835)" \
     "" "openwrt"
 
-build_platform "linux" "arm" "7" "${BINARY_NAME}-openwrt-arm_v7" \
+build_platform "linux" "arm" "7" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v7" \
     "ARM v7 (IPQ40xx, GL.iNet B1300, Raspberry Pi 2/3)" \
     "" "openwrt"
 
-build_platform "linux" "arm64" "" "${BINARY_NAME}-openwrt-arm64" \
+build_platform "linux" "arm64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm64" \
     "ARM64 (MT7622/MT7986, IPQ807x, BananaPi R3/R4, GL.iNet MT6000)" \
     "" "openwrt"
 
 # x86 Embedded Platforms (with openwrt build tag for UCI support)
-build_platform "linux" "386" "" "${BINARY_NAME}-openwrt-x86" \
+build_platform "linux" "386" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86" \
     "x86 32-bit (Legacy PC Engines, Old x86 routers)" \
     "" "openwrt"
 
-build_platform "linux" "amd64" "" "${BINARY_NAME}-openwrt-x86_64" \
+build_platform "linux" "amd64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86_64" \
     "x86-64 (PC Engines APU, Protectli, x86 routers, VMs)" \
     "GOAMD64=v2" "openwrt"
 
@@ -307,15 +307,15 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║                    Windows Platforms                       ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
-build_platform "windows" "amd64" "" "${BINARY_NAME}-windows-amd64.exe" \
+build_platform "windows" "amd64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-windows-amd64.exe" \
     "Windows x86-64 (64-bit)" \
     "GOAMD64=v2"
 
-build_platform "windows" "386" "" "${BINARY_NAME}-windows-i386.exe" \
+build_platform "windows" "386" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-windows-i386.exe" \
     "Windows x86 (32-bit)" \
     ""
 
-build_platform "windows" "arm64" "" "${BINARY_NAME}-windows-arm64.exe" \
+build_platform "windows" "arm64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-windows-arm64.exe" \
     "Windows ARM64 (Surface Pro X, ARM laptops)" \
     ""
 
@@ -537,45 +537,45 @@ EOF
 IPK_COUNT=0
 
 # MIPS
-if create_ipk "mips" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
+if create_ipk "mips" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mipsel" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
+if create_ipk "mipsel" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
+if create_ipk "mips64" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64el" "${BUILD_DIR}/${BINARY_NAME}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
+if create_ipk "mips64el" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # ARM
-if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
+if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
+if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
+if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "aarch64_generic" "${BUILD_DIR}/${BINARY_NAME}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
+if create_ipk "aarch64_generic" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
 # x86
-if create_ipk "i386_pentium4" "${BUILD_DIR}/${BINARY_NAME}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
+if create_ipk "i386_pentium4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "x86_64" "${BUILD_DIR}/${BINARY_NAME}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
+if create_ipk "x86_64" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
