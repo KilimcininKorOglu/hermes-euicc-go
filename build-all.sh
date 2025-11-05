@@ -257,12 +257,10 @@ build_platform "linux" "mipsle" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}
     "GOMIPS=softfloat" "openwrt"
 
 build_platform "linux" "mips64" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64" \
-    "MIPS64 BE (Cavium Octeon, EdgeRouter Pro)" \
+    "MIPS64 BE (Cavium Octeon, EdgeRouter Pro, Ubiquiti ER-8)" \
     "GOMIPS64=softfloat" "openwrt"
 
-build_platform "linux" "mips64le" "" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64le" \
-    "MIPS64 LE (Cavium Octeon Little-Endian)" \
-    "GOMIPS64=softfloat" "openwrt"
+# Note: MIPS64 LE not built - OpenWRT doesn't support this architecture (too rare)
 
 # ARM Embedded Platforms (with openwrt build tag for UCI support)
 build_platform "linux" "arm" "5" "${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v5" \
@@ -535,46 +533,44 @@ EOF
 # Create IPK for each OpenWRT architecture
 IPK_COUNT=0
 
-# MIPS
-if create_ipk "mips" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips" "MIPS BE (Atheros AR/QCA, TP-Link)"; then
+# MIPS - OpenWRT uses specific CPU-based architecture names
+if create_ipk "mips_24kc" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips" "MIPS 24Kc (AR71xx/AR9xxx - TP-Link, GL.iNet, Ubiquiti)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mipsel" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mipsle" "MIPS LE (MediaTek MT76xx, Ralink)"; then
+if create_ipk "mipsel_24kc" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mipsle" "MIPS LE 24Kc (MediaTek MT76xx, Ralink)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64" "MIPS64 BE (Cavium Octeon)"; then
+if create_ipk "mips64_octeonplus" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64" "MIPS64 Octeon+ (Cavium EdgeRouter, Ubiquiti ER-8)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "mips64el" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-mips64le" "MIPS64 LE (Cavium Octeon LE)"; then
+# Note: mips64el (little-endian) not supported in OpenWRT - platform too rare
+
+# ARM - OpenWRT uses CPU-specific names
+if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v5" "ARM v5 ARM926EJ-S (Kirkwood, Old NAS)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-# ARM
-if create_ipk "arm_arm926ej-s" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v5" "ARM v5 (Kirkwood, Old NAS)"; then
+if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v6" "ARM v6 ARM1176JZF-S (Raspberry Pi Zero/1)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_arm1176jzf-s_vfp" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v6" "ARM v6 (Raspberry Pi Zero/1)"; then
+if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v7" "ARM v7 Cortex-A7 (IPQ40xx, Raspberry Pi 2/3)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "arm_cortex-a7_neon-vfpv4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm_v7" "ARM v7 (IPQ40xx, Raspberry Pi 2/3)"; then
+if create_ipk "aarch64_cortex-a53" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm64" "ARM64 Cortex-A53 (MT7622/MT7986, IPQ807x, BananaPi R3/R4)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-if create_ipk "aarch64_generic" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-arm64" "ARM64 (MT7622/MT7986, IPQ807x)"; then
+# x86 - OpenWRT uses CPU feature-based names
+if create_ipk "i386_pentium4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86" "x86 Pentium 4 (Legacy PC Engines, x86 routers)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
-# x86
-if create_ipk "i386_pentium4" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86" "x86 32-bit (Legacy routers)"; then
-    IPK_COUNT=$((IPK_COUNT + 1))
-fi
-
-if create_ipk "x86_64" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86_64" "x86-64 (PC Engines APU, VMs)"; then
+if create_ipk "x86_64" "${BUILD_DIR}/${BINARY_NAME}-${PKG_VERSION}-${PKG_RELEASE}-openwrt-x86_64" "x86-64 (PC Engines APU, Protectli, VMs)"; then
     IPK_COUNT=$((IPK_COUNT + 1))
 fi
 
