@@ -772,7 +772,7 @@ func handleDiscoverDownload(client *lpa.Client) {
 }
 
 func handleNotifications(client *lpa.Client) {
-	notifications, err := client.ListNotification()
+	notifications, err := client.ListNotification(sgp22.NotificationAll)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
@@ -781,10 +781,10 @@ func handleNotifications(client *lpa.Client) {
 	response := make([]NotificationResponse, 0, len(notifications))
 	for _, n := range notifications {
 		response = append(response, NotificationResponse{
-			SequenceNumber:             int(n.SequenceNumber),
+			SequenceNumber:             n.SeqNumber,
 			ProfileManagementOperation: int(n.ProfileManagementOperation),
-			Address:                    n.Address,
-			ICCID:                      n.ICCID.String(),
+			Address:                    n.NotificationAddress,
+			ICCID:                      hex.EncodeToString(n.ICCID),
 		})
 	}
 
