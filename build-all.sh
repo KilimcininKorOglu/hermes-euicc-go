@@ -30,7 +30,7 @@ SOURCE_DIR="${SCRIPT_DIR}"
 BINARY_NAME="hermes-euicc"
 PKG_VERSION="1.0.0"  # Package version (manually update for new versions)
 PKG_RELEASE=$(git rev-list --count HEAD 2>/dev/null || echo "1")  # Auto-increment with git commits
-BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}"  # Version-specific directory
+BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}-${PKG_RELEASE}"  # Version-release specific directory
 GO_VERSION="1.24.0"  # Required Go version
 
 # Package metadata
