@@ -803,7 +803,7 @@ func handleNotificationRemove(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	if err := client.RemoveNotificationFromList(sgp22.SequenceNumber(seqNum)); err != nil {
+	if err := client.RemoveNotificationFromList(seqNum); err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
