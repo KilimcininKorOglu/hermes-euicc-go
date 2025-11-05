@@ -745,52 +745,29 @@ func handleDiscovery(client *lpa.Client) {
 }
 
 func handleDiscoverDownload(client *lpa.Client) {
-	var (
-		server = flag.String("server", "", "SM-DS server address (default: lpa.ds.gsma.com)")
-		imei   = flag.String("imei", "", "IMEI for authentication")
-	)
+	var server = flag.String("server", "", "SM-DS server address (default: GSMA production)")
 
 	discoveryFlags := flag.NewFlagSet("discover-download", flag.ExitOnError)
 	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
-	discoveryFlags.StringVar(imei, "imei", "", "IMEI")
 	discoveryFlags.Parse(flag.Args()[1:])
 
-	// Prepare discovery options
-	discoveryOpts := &lpa.DiscoverProfilesOptions{}
-
-	// Set SM-DS address if provided
+	// Prepare SM-DS address parameter
+	var smdsAddr *string
 	if *server != "" {
-		discoveryOpts.SMDSAddress = *server
+		smdsAddr = server
+	} else {
+		smdsAddr = nil // Use default GSMA SM-DS
 	}
 
-	// Set IMEI if provided
-	if *imei != "" {
-		imeiBytes, err := sgp22.NewIMEI(*imei)
-		if err != nil {
-			outputError(fmt.Errorf("invalid IMEI: %w", err))
-			os.Exit(1)
-		}
-		discoveryOpts.IMEI = imeiBytes
-	}
-
-	// Use library's DiscoverAndDownload function
-	ctx := context.Background()
-	result, err := client.DiscoverAndDownload(ctx, discoveryOpts, nil)
+	// Use library's DiscoverAndDownload function with correct API
+	err := client.DiscoverAndDownload(smdsAddr)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
 
-	// Check if a profile was downloaded
-	if result == nil {
-		outputSuccess(map[string]interface{}{
-			"message": "no profiles available for download",
-		})
-		return
-	}
-
-	outputSuccess(map[string]interface{}{
-		"message": "profile downloaded successfully",
+	outputSuccess(map[string]string{
+		"message": "profile discovered and downloaded successfully",
 	})
 }
 
