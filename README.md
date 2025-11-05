@@ -22,19 +22,22 @@ go build -o hermes-euicc
 
 ### Build Script
 
-**Universal build for all platforms:**
+**Universal build for all 19 platforms:**
 ```bash
 ./build-all.sh
 ```
 
-**Outputs organized by platform:**
-- `build/linux/` - Desktop/Server Linux binaries
-- `build/openwrt/` - Embedded Linux (routers, IoT devices)
-- `build/darwin/` - macOS binaries
-- `build/windows/` - Windows binaries
-- `build/freebsd/` - FreeBSD binaries
+**Build output:**
+- All binaries in `build/1.0.0/` (version-specific directory)
+- Includes 9 OpenWRT IPK packages with proper architecture names
+- SHA256SUMS generated automatically
 
-**Note:** Script automatically installs Go 1.24.0 if not found.
+**Supported platforms:**
+- Linux: 3 architectures (amd64, i386, arm64)
+- OpenWRT: 9 architectures (MIPS, ARM, x86)
+- Windows: 3 architectures (amd64, i386, arm64)
+
+**Note:** Script automatically installs Go 1.24.0 if not found. macOS and FreeBSD builds disabled due to upstream driver issues.
 
 ### Pre-built Binaries
 
@@ -511,32 +514,47 @@ uname -m
 ls -la /lib/ld-musl-*.so.1
 ```
 
-### 2. Select the Correct Binary
+### 2. Select the Correct Binary or IPK
 
-| musl libc file | Architecture | Use binary |
-|----------------|--------------|------------|
-| `ld-musl-mips-sf.so.1` | MIPS Big-Endian | `build/openwrt/hermes-euicc-mips` |
-| `ld-musl-mipsel-sf.so.1` | MIPS Little-Endian | `build/openwrt/hermes-euicc-mipsle` |
-| `ld-musl-armhf.so.1` | ARM v7 (32-bit) | `build/openwrt/hermes-euicc-arm_v7` |
-| `ld-musl-aarch64.so.1` | ARM 64-bit | `build/openwrt/hermes-euicc-arm64` |
-| `ld-musl-x86_64.so.1` | x86-64 | `build/openwrt/hermes-euicc-x86_64` |
+| musl libc file | Architecture | Binary | IPK Package |
+|----------------|--------------|--------|-------------|
+| `ld-musl-mips-sf.so.1` | MIPS 24Kc BE | `hermes-euicc-*-openwrt-mips` | `hermes-euicc_*_mips_24kc.ipk` |
+| `ld-musl-mipsel-sf.so.1` | MIPS 24Kc LE | `hermes-euicc-*-openwrt-mipsle` | `hermes-euicc_*_mipsel_24kc.ipk` |
+| `ld-musl-armhf.so.1` | ARM Cortex-A7 | `hermes-euicc-*-openwrt-arm_v7` | `hermes-euicc_*_arm_cortex-a7_neon-vfpv4.ipk` |
+| `ld-musl-aarch64.so.1` | ARM64 Cortex-A53 | `hermes-euicc-*-openwrt-arm64` | `hermes-euicc_*_aarch64_cortex-a53.ipk` |
+| `ld-musl-x86_64.so.1` | x86-64 | `hermes-euicc-*-openwrt-x86_64` | `hermes-euicc_*_x86_64.ipk` |
+
+All files are in `build/1.0.0/` directory.
 
 **Common Devices:**
-- **TP-Link Archer**, **GL.iNet AR/XE series**, **Ubiquiti EdgeRouter** → `mips`
-- **GL.iNet MT series**, **many MediaTek routers** → `mipsle`
-- **GL.iNet B1300**, **IPQ40xx devices** → `arm_v7`
-- **BananaPi R3/R4**, **GL.iNet MT6000** → `arm64`
-- **PC Engines APU**, **Protectli**, **x86 VMs** → `x86_64`
+- **TP-Link Archer**, **GL.iNet AR/XE series**, **Ubiquiti EdgeRouter** → MIPS 24Kc BE
+- **GL.iNet MT series**, **MediaTek MT76xx routers** → MIPS 24Kc LE
+- **GL.iNet B1300**, **IPQ40xx devices** → ARM Cortex-A7
+- **BananaPi R3/R4**, **GL.iNet MT6000**, **MT7622/MT7986** → ARM64 Cortex-A53
+- **PC Engines APU**, **Protectli**, **x86 VMs** → x86-64
 
-### 3. Transfer and Install
+### 3. Installation Methods
 
+**Method A: Install IPK Package (Recommended)**
+```bash
+# On your computer: Transfer IPK to router
+scp build/1.0.0/hermes-euicc_1.0.0-*_mips_24kc.ipk root@192.168.1.1:/tmp/
+
+# On OpenWRT router: Install via opkg
+opkg install /tmp/hermes-euicc_*.ipk
+
+# Test
+hermes-euicc version
+```
+
+**Method B: Manual Binary Installation**
 ```bash
 # On your computer: Transfer binary to router
-scp build/openwrt/hermes-euicc-mips root@192.168.1.1:/tmp/
+scp build/1.0.0/hermes-euicc-1.0.0-*-openwrt-mips root@192.168.1.1:/tmp/
 
 # On OpenWRT router: Install
-chmod +x /tmp/hermes-euicc-mips
-mv /tmp/hermes-euicc-mips /usr/bin/hermes-euicc
+chmod +x /tmp/hermes-euicc-*-openwrt-mips
+mv /tmp/hermes-euicc-*-openwrt-mips /usr/bin/hermes-euicc
 
 # Test
 hermes-euicc version

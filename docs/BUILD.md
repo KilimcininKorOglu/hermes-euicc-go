@@ -1,6 +1,6 @@
 # Build Guide - Hermes eUICC Manager
 
-Comprehensive build instructions for 15 actively supported platforms and architectures.
+Comprehensive build instructions for 19 actively supported platforms and architectures.
 
 ## Table of Contents
 
@@ -56,7 +56,7 @@ Flags explained:
 
 ### build-all.sh - One Script for All Platforms
 
-The `build-all.sh` script builds for **15 active platforms** with a single command:
+The `build-all.sh` script builds for **19 active platforms** with a single command:
 
 ```bash
 cd app
@@ -67,7 +67,7 @@ cd app
 - Auto-installs Go 1.24.0 if not found
 - **Auto-increments release numbers** using git commit count
 - **Injects version info** into binaries via ldflags
-- Builds 15 platforms (Linux, OpenWRT, Windows) - macOS/FreeBSD disabled due to upstream issues
+- Builds 19 platforms (Linux, OpenWRT, Windows) - macOS/FreeBSD disabled due to upstream issues
 - Platform-specific optimizations (GOMIPS=softfloat, GOAMD64=v2)
 - **Version-specific output directory** (build/1.0.0/)
 - **Versioned binary filenames** (hermes-euicc-1.0.0-48-linux-amd64)
@@ -86,7 +86,6 @@ build/
     ├── hermes-euicc-1.0.0-48-openwrt-mips
     ├── hermes-euicc-1.0.0-48-openwrt-mipsle
     ├── hermes-euicc-1.0.0-48-openwrt-mips64
-    ├── hermes-euicc-1.0.0-48-openwrt-mips64le
     ├── hermes-euicc-1.0.0-48-openwrt-arm_v5
     ├── hermes-euicc-1.0.0-48-openwrt-arm_v6
     ├── hermes-euicc-1.0.0-48-openwrt-arm_v7
@@ -99,7 +98,6 @@ build/
     ├── hermes-euicc_1.0.0-48_mips.ipk
     ├── hermes-euicc_1.0.0-48_mipsle.ipk
     ├── hermes-euicc_1.0.0-48_mips64.ipk
-    ├── hermes-euicc_1.0.0-48_mips64le.ipk
     ├── hermes-euicc_1.0.0-48_arm_cortex-a5.ipk
     ├── hermes-euicc_1.0.0-48_arm_cortex-a7.ipk
     ├── hermes-euicc_1.0.0-48_arm_cortex-a9.ipk
@@ -195,9 +193,7 @@ CGO_ENABLED=0 GOOS=linux GOARCH=mips64 GOMIPS64=softfloat go build \
     -o hermes-euicc-mips64 .
 
 # Little Endian
-CGO_ENABLED=0 GOOS=linux GOARCH=mips64le GOMIPS64=softfloat go build \
     -tags=openwrt -ldflags="-s -w" -trimpath \
-    -o hermes-euicc-mips64le .
 ```
 
 **Devices:** Ubiquiti EdgeRouter, Cavium-based systems

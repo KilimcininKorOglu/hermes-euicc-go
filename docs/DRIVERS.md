@@ -20,12 +20,12 @@ Hermes eUICC Manager supports **4 driver types** with **cross-platform compatibi
 | Platform | QMI | MBIM | AT | CCID | Build Status |
 |----------|-----|------|-----|------|--------------|
 | **Linux** (amd64, i386, arm64) | ✅ | ✅ | ✅ | ✅ | ✅ Full support |
-| **OpenWRT** (10 architectures) | ✅ | ✅ | ✅ | ❌ | ✅ Modem + AT |
+| **OpenWRT** (9 architectures) | ✅ | ✅ | ✅ | ❌ | ✅ Modem + AT |
 | **macOS** (Intel, Apple Silicon) | ❌ | ❌ | ✅ | ✅ | ✅ AT + CCID |
 | **Windows** (x64, x86, ARM64) | ❌ | ❌ | ✅ | ✅ | ✅ AT + CCID |
 | **FreeBSD** (amd64, arm64) | ❌ | ❌ | ✅ | ✅ | ✅ AT + CCID |
 
-**Total: 20 platforms, 100% build success**
+**Total: 19 platforms, 100% build success**
 
 ### OpenWRT Architectures
 
@@ -415,7 +415,7 @@ pcsc_scan
 ## Conclusion
 
 ✅ **4 drivers implemented**
-✅ **20 platforms supported (100% build success)**
+✅ **19 platforms supported (100% build success)**
 ✅ **Cross-platform AT and CCID drivers**
 ✅ **Platform-specific optimizations via build tags**
 ✅ **Auto-detection works on all platforms**
