@@ -826,18 +826,7 @@ func handleNotificationHandle(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	notifications, err := client.RetrieveNotificationList(sgp22.SequenceNumber(seqNum))
-	if err != nil {
-		outputError(err)
-		os.Exit(1)
-	}
-
-	if len(notifications) == 0 {
-		outputError(fmt.Errorf("notification not found"))
-		os.Exit(1)
-	}
-
-	if err := client.HandleNotification(notifications[0]); err != nil {
+	if err := client.HandleNotification(seqNum); err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
