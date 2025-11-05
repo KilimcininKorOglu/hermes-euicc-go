@@ -711,36 +711,22 @@ func handleDownload(client *lpa.Client) {
 }
 
 func handleDiscovery(client *lpa.Client) {
-	var (
-		server = flag.String("server", "", "SM-DS server address (default: lpa.ds.gsma.com)")
-		imei   = flag.String("imei", "", "IMEI for authentication")
-	)
+	var server = flag.String("server", "", "SM-DS server address (default: GSMA production)")
 
 	discoveryFlags := flag.NewFlagSet("discovery", flag.ExitOnError)
 	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
-	discoveryFlags.StringVar(imei, "imei", "", "IMEI")
 	discoveryFlags.Parse(flag.Args()[1:])
 
-	// Prepare discovery options
-	opts := &lpa.DiscoverProfilesOptions{}
-
-	// Set SM-DS address if provided
+	// Prepare SM-DS address parameter
+	var smdsAddr *string
 	if *server != "" {
-		opts.SMDSAddress = *server
+		smdsAddr = server
+	} else {
+		smdsAddr = nil // Use default GSMA SM-DS
 	}
 
-	// Set IMEI if provided
-	if *imei != "" {
-		imeiBytes, err := sgp22.NewIMEI(*imei)
-		if err != nil {
-			outputError(fmt.Errorf("invalid IMEI: %w", err))
-			os.Exit(1)
-		}
-		opts.IMEI = imeiBytes
-	}
-
-	// Use library's DiscoverProfiles function
-	profiles, err := client.DiscoverProfiles(opts)
+	// Use library's DiscoverProfiles function with correct API
+	profiles, err := client.DiscoverProfiles(smdsAddr)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
@@ -751,7 +737,7 @@ func handleDiscovery(client *lpa.Client) {
 	for i, profile := range profiles {
 		response[i] = DiscoveryResponse{
 			EventID: profile.EventID,
-			Address: profile.SMDPAddress,
+			Address: profile.SmdpAddress, // Correct field name (lowercase 'm')
 		}
 	}
 
