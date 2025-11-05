@@ -467,18 +467,18 @@ EOF
 #!/bin/sh
 # Initialize hermes-euicc UCI config only on first installation
 # Check if config section exists - if not, this is first install
-if ! uci -q get hermes-euicc.hermes-euicc >/dev/null 2>&1; then
+if ! uci -q get hermes_euicc.config >/dev/null 2>&1; then
     # First installation - create config file with defaults
     if [ ! -f /etc/config/hermes-euicc ]; then
         touch /etc/config/hermes-euicc
     fi
 
-    uci set hermes-euicc.hermes-euicc='hermes-euicc'
-    uci set hermes-euicc.hermes-euicc.driver='auto'
-    uci set hermes-euicc.hermes-euicc.device=''
-    uci set hermes-euicc.hermes-euicc.slot='1'
-    uci set hermes-euicc.hermes-euicc.timeout='30'
-    uci commit hermes-euicc
+    uci set hermes_euicc.config='hermes_euicc'
+    uci set hermes_euicc.config.driver='auto'
+    uci set hermes_euicc.config.device=''
+    uci set hermes_euicc.config.slot='1'
+    uci set hermes_euicc.config.timeout='30'
+    uci commit hermes_euicc
 
     echo "Hermes eUICC Manager installed successfully!"
     echo "Default configuration created in /etc/config/hermes-euicc"
