@@ -66,11 +66,6 @@ type InfoResponse struct {
 	EUICCInfo2 string `json:"euicc_info2"`
 }
 
-type DownloadResponse struct {
-	ISDPAID      string `json:"isdp_aid"`
-	Notification int    `json:"notification"`
-}
-
 type ConfiguredAddressesResponse struct {
 	DefaultSMDPAddress string `json:"default_smdp_address,omitempty"`
 	RootSMDSAddress    string `json:"root_smds_address,omitempty"`
@@ -651,17 +646,13 @@ func handleNickname(client *lpa.Client) {
 
 func handleDownload(client *lpa.Client) {
 	var (
-		activationCode   = flag.String("code", "", "Activation code (LPA:1$smdp.io$MATCHING-ID)")
-		confirmationCode = flag.String("confirmation-code", "", "Confirmation code")
-		imei             = flag.String("imei", "", "IMEI")
-		autoConfirm      = flag.Bool("confirm", false, "Auto-confirm download")
+		activationCode          = flag.String("code", "", "Activation code (LPA:1$smdp.io$MATCHING-ID)")
+		confirmationCodeRequired = flag.Bool("confirmation-code", true, "Profile requires confirmation code")
 	)
 
 	downloadFlags := flag.NewFlagSet("download", flag.ExitOnError)
 	downloadFlags.StringVar(activationCode, "code", "", "Activation code")
-	downloadFlags.StringVar(confirmationCode, "confirmation-code", "", "Confirmation code")
-	downloadFlags.StringVar(imei, "imei", "", "IMEI")
-	downloadFlags.BoolVar(autoConfirm, "confirm", false, "Auto-confirm download")
+	downloadFlags.BoolVar(confirmationCodeRequired, "confirmation-code", true, "Profile requires confirmation code")
 	downloadFlags.Parse(flag.Args()[1:])
 
 	if *activationCode == "" {
@@ -669,45 +660,16 @@ func handleDownload(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	ac := &lpa.ActivationCode{}
-	if err := ac.UnmarshalText([]byte(*activationCode)); err != nil {
-		outputError(fmt.Errorf("invalid activation code: %w", err))
-		os.Exit(1)
-	}
-
-	if *imei != "" {
-		ac.IMEI = *imei
-	}
-
-	ctx := context.Background()
-	opts := &lpa.DownloadOptions{
-		OnProgress: func(stage lpa.DownloadStage) {
-			if *verbose {
-				log.Printf("Download stage: %v\n", stage)
-			}
-		},
-		OnConfirm: func(metadata *sgp22.ProfileInfo) bool {
-			return *autoConfirm
-		},
-		OnEnterConfirmationCode: func() string {
-			return *confirmationCode
-		},
-	}
-
-	result, err := client.DownloadProfile(ctx, ac, opts)
+	err := client.DownloadProfile(*activationCode, *confirmationCodeRequired)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
 
-	dr := DownloadResponse{
-		ISDPAID: result.ISDPAID().String(),
-	}
-	if result.Notification != nil {
-		dr.Notification = int(result.Notification.ProfileManagementOperation)
-	}
-
-	outputSuccess(dr)
+	outputSuccess(map[string]string{
+		"message": "profile downloaded successfully",
+		"activation_code": *activationCode,
+	})
 }
 
 func handleDiscovery(client *lpa.Client) {
