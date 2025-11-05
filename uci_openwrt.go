@@ -34,30 +34,60 @@ func readUCIConfig() *UCIConfig {
 	}
 
 	// Read driver setting
-	if out, err := exec.Command("uci", "get", "hermes-euicc.hermes-euicc.driver").Output(); err == nil {
+	if out, err := exec.Command("uci", "get", "hermes_euicc.config.driver").Output(); err == nil {
 		driver := strings.TrimSpace(string(out))
 		if driver != "" && driver != "auto" {
+			// Accept 'uqmi' as alias for 'qmi' driver
+			if driver == "uqmi" {
+				driver = "qmi"
+			}
 			config.Driver = driver
 		}
 	}
 
-	// Read device setting
-	if out, err := exec.Command("uci", "get", "hermes-euicc.hermes-euicc.device").Output(); err == nil {
+	// Read device setting - try general device first, then driver-specific
+	if out, err := exec.Command("uci", "get", "hermes_euicc.config.qmi_device").Output(); err == nil {
 		device := strings.TrimSpace(string(out))
 		if device != "" {
 			config.Device = device
 		}
 	}
+	// Fallback to mbim_device if qmi_device not found
+	if config.Device == "" {
+		if out, err := exec.Command("uci", "get", "hermes_euicc.config.mbim_device").Output(); err == nil {
+			device := strings.TrimSpace(string(out))
+			if device != "" {
+				config.Device = device
+			}
+		}
+	}
+	// Fallback to at_device if still not found
+	if config.Device == "" {
+		if out, err := exec.Command("uci", "get", "hermes_euicc.config.at_device").Output(); err == nil {
+			device := strings.TrimSpace(string(out))
+			if device != "" {
+				config.Device = device
+			}
+		}
+	}
 
-	// Read slot setting
-	if out, err := exec.Command("uci", "get", "hermes-euicc.hermes-euicc.slot").Output(); err == nil {
+	// Read slot setting - try qmi_sim_slot first, then general slot
+	if out, err := exec.Command("uci", "get", "hermes_euicc.config.qmi_sim_slot").Output(); err == nil {
 		if slot, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && slot > 0 {
 			config.Slot = slot
 		}
 	}
+	// Fallback to general slot if qmi_sim_slot not found
+	if config.Slot == 1 {
+		if out, err := exec.Command("uci", "get", "hermes_euicc.config.slot").Output(); err == nil {
+			if slot, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && slot > 0 {
+				config.Slot = slot
+			}
+		}
+	}
 
 	// Read timeout setting
-	if out, err := exec.Command("uci", "get", "hermes-euicc.hermes-euicc.timeout").Output(); err == nil {
+	if out, err := exec.Command("uci", "get", "hermes_euicc.config.timeout").Output(); err == nil {
 		if timeout, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && timeout > 0 {
 			config.Timeout = timeout
 		}
