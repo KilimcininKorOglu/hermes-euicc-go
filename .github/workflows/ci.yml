@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Build (native)
+        run: go build ./...
+
+      - name: Build (openwrt tag)
+        run: go build -tags openwrt ./...
+
+      - name: Test
+        run: go test ./...

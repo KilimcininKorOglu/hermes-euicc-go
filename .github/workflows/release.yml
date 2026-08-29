@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # build.sh derives PKG_RELEASE from `git rev-list --count HEAD`.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+
+      - name: Build all platforms and IPKs
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          PKG_VERSION="$VERSION" bash build.sh
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/${{ env.VERSION }}-*/*
+
+      - name: Notify shared feed repository
+        env:
+          GH_TOKEN: ${{ secrets.FEED_DISPATCH_TOKEN }}
+          REPO: ${{ github.event.repository.name }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          jq -nc --arg repo "$REPO" --arg tag "$TAG" \
+            '{event_type:"publish-ipk",client_payload:{repo:$repo,tag:$tag}}' \
+          | gh api --method POST \
+              repos/KilimcininKorOglu/openwrt-packages/dispatches --input -
