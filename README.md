@@ -4,12 +4,12 @@
 
 ## Features
 
-- ✅ **Full JSON Output** - All commands respond in JSON format
-- ✅ **Automatic Driver Detection** - Auto-detects QMI, MBIM, AT, CCID drivers*
-- ℹ️ **Platform Note** - CCID support only on amd64/arm64 platforms (not available on MIPS/i386/ARMv5-7)
-- ✅ **All SGP.22 Functions** - Supports all library features
-- ✅ **Error Handling** - Structured error messages
-- ✅ **Command Line Flags** - Flexible configuration options
+- **Full JSON Output** - All commands respond in JSON format
+- **Automatic Driver Detection** - Auto-detects QMI, MBIM, AT, CCID drivers*
+- **Platform Note** - CCID support only on amd64/arm64 platforms (not available on MIPS/i386/ARMv5-7)
+- **All SGP.22 Functions** - Supports all library features
+- **Error Handling** - Structured error messages
+- **Command Line Flags** - Flexible configuration options
 
 ## Installation
 
