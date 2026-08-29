@@ -21,7 +21,7 @@ import (
 
 // Version information (set by build script or ldflags)
 var (
-	Version = "1.0.0" // Application version
+	Version = "0.1.0" // Application version
 	Release = "1"     // Release number
 )
 

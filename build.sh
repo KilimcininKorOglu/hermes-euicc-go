@@ -28,7 +28,7 @@ echo -e "${NC}\n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
 BINARY_NAME="hermes-euicc-go"
-PKG_VERSION="${PKG_VERSION:-1.0.0}"  # Package version; override via env (CI passes the tag)
+PKG_VERSION="${PKG_VERSION:-0.1.0}"  # Package version; override via env (CI passes the tag)
 PKG_RELEASE=$(git rev-list --count HEAD 2>/dev/null || echo "1")  # Auto-increment with git commits
 BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}-${PKG_RELEASE}"  # Version-release specific directory
 GO_VERSION="1.24.0"  # Required Go version
