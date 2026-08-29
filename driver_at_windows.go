@@ -6,13 +6,13 @@
 package main
 
 import (
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/driver/at"
+	"github.com/damonto/euicc-go/driver"
+	"github.com/damonto/euicc-go/driver/at"
 )
 
 // newATDriver creates a new AT driver instance for Windows
 // Uses Win32 COM port API
-func newATDriver(device string) (apdu.SmartCardChannel, error) {
+func newATDriver(device string) (driver.SmartCardChannel, error) {
 	return at.New(device)
 }
 

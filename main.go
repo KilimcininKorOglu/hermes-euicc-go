@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/lpa"
-	sgp22 "github.com/KilimcininKorOglu/euicc-go/v2"
+	"github.com/damonto/euicc-go/driver"
+	"github.com/damonto/euicc-go/lpa"
+	sgp22 "github.com/damonto/euicc-go/v2"
 )
 
 // Version information (set by build script or ldflags)
@@ -37,15 +37,15 @@ type EIDResponse struct {
 }
 
 type ProfileResponse struct {
-	ICCID                string `json:"iccid"`
-	ISDPAID              string `json:"isdp_aid,omitempty"`
-	ProfileState         int    `json:"profile_state"`
-	ProfileName          string `json:"profile_name,omitempty"`
-	ProfileNickname      string `json:"profile_nickname,omitempty"`
-	ServiceProviderName  string `json:"service_provider_name,omitempty"`
-	ProfileClass         string `json:"profile_class,omitempty"`
-	Icon                 string `json:"icon,omitempty"`
-	IconFileType         string `json:"icon_file_type,omitempty"`
+	ICCID               string `json:"iccid"`
+	ISDPAID             string `json:"isdp_aid,omitempty"`
+	ProfileState        int    `json:"profile_state"`
+	ProfileName         string `json:"profile_name,omitempty"`
+	ProfileNickname     string `json:"profile_nickname,omitempty"`
+	ServiceProviderName string `json:"service_provider_name,omitempty"`
+	ProfileClass        string `json:"profile_class,omitempty"`
+	Icon                string `json:"icon,omitempty"`
+	IconFileType        string `json:"icon_file_type,omitempty"`
 }
 
 type NotificationResponse struct {
@@ -82,12 +82,12 @@ type FailedNotification struct {
 }
 
 type AutoNotificationResponse struct {
-	Message       string                   `json:"message"`
-	Total         int                      `json:"total"`
-	Processed     int                      `json:"processed"`
-	Failed        int                      `json:"failed"`
-	ProcessedList []ProcessedNotification  `json:"processed_list"`
-	FailedList    []FailedNotification     `json:"failed_list"`
+	Message       string                  `json:"message"`
+	Total         int                     `json:"total"`
+	Processed     int                     `json:"processed"`
+	Failed        int                     `json:"failed"`
+	ProcessedList []ProcessedNotification `json:"processed_list"`
+	FailedList    []FailedNotification    `json:"failed_list"`
 }
 
 type ChipInfoResponse struct {
@@ -122,7 +122,7 @@ type EUICCInfo2Response struct {
 	EUICCCategory string `json:"euicc_category,omitempty"`
 
 	// Certification
-	SASAccreditationNumber string                          `json:"sas_accreditation_number,omitempty"`
+	SASAccreditationNumber  string                          `json:"sas_accreditation_number,omitempty"`
 	CertificationDataObject CertificationDataObjectResponse `json:"certification_data_object,omitempty"`
 }
 
@@ -150,12 +150,12 @@ type AllowedOperatorResponse struct {
 
 // Global flags
 var (
-	devicePath  = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
-	driverType  = flag.String("driver", "", "Driver type: qmi, mbim, at, ccid (auto-detect if not specified)")
-	slotNumber  = flag.Int("slot", 0, "SIM slot number (0 = use config file)")
-	verbose     = flag.Bool("verbose", false, "Enable verbose logging")
-	timeout     = flag.Int("timeout", 0, "HTTP timeout in seconds (0 = use config file)")
-	configFile  = flag.String("config", "", "Config file path (default: auto-detect)")
+	devicePath = flag.String("device", "", "Device path (e.g., /dev/cdc-wdm0, /dev/ttyUSB2)")
+	driverType = flag.String("driver", "", "Driver type: qmi, mbim, at, ccid (auto-detect if not specified)")
+	slotNumber = flag.Int("slot", 0, "SIM slot number (0 = use config file)")
+	verbose    = flag.Bool("verbose", false, "Enable verbose logging")
+	timeout    = flag.Int("timeout", 0, "HTTP timeout in seconds (0 = use config file)")
+	configFile = flag.String("config", "", "Config file path (default: auto-detect)")
 )
 
 func main() {
@@ -205,26 +205,26 @@ func main() {
 
 	// Validate command before initializing client
 	validCommands := map[string]bool{
-		"eid":                   true,
-		"info":                  true,
-		"chip-info":             true,
-		"list":                  true,
-		"enable":                true,
-		"disable":               true,
-		"delete":                true,
-		"nickname":              true,
-		"download":              true,
-		"discovery":             true,
-		"discover-download":     true,
-		"notifications":         true,
-		"notification-remove":   true,
-		"notification-handle":   true,
-		"auto-notification":     true,
-		"notification-process":  true,
-		"configured-addresses":  true,
-		"set-default-dp":        true,
-		"challenge":             true,
-		"memory-reset":          true,
+		"eid":                  true,
+		"info":                 true,
+		"chip-info":            true,
+		"list":                 true,
+		"enable":               true,
+		"disable":              true,
+		"delete":               true,
+		"nickname":             true,
+		"download":             true,
+		"discovery":            true,
+		"discover-download":    true,
+		"notifications":        true,
+		"notification-remove":  true,
+		"notification-handle":  true,
+		"auto-notification":    true,
+		"notification-process": true,
+		"configured-addresses": true,
+		"set-default-dp":       true,
+		"challenge":            true,
+		"memory-reset":         true,
 	}
 
 	if !validCommands[command] {
@@ -291,7 +291,7 @@ func main() {
 }
 
 func initClient() (*lpa.Client, error) {
-	var channel apdu.SmartCardChannel
+	var channel driver.SmartCardChannel
 	var err error
 
 	if *driverType != "" {
@@ -314,7 +314,7 @@ func initClient() (*lpa.Client, error) {
 	return lpa.New(opts)
 }
 
-func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, error) {
+func createDriver(driverName, device string, slot int) (driver.SmartCardChannel, error) {
 	switch driverName {
 	case "qmi":
 		if !qmiSupported {
@@ -347,7 +347,7 @@ func createDriver(driverName, device string, slot int) (apdu.SmartCardChannel, e
 	}
 }
 
-func autoDetectDriver(device string, slot int) (apdu.SmartCardChannel, error) {
+func autoDetectDriver(device string, slot int) (driver.SmartCardChannel, error) {
 	// Try QMI
 	if qmiSupported && (device == "" || device == "/dev/cdc-wdm0") {
 		if ch, err := newQMIDriver("/dev/cdc-wdm0", uint8(slot)); err == nil {
@@ -439,16 +439,27 @@ func handleInfo(client *lpa.Client) {
 		os.Exit(1)
 	}
 
+	info1Bytes, err := info1.Bytes()
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+	info2Bytes, err := info2.Bytes()
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+
 	outputSuccess(InfoResponse{
 		EID:        hex.EncodeToString(eid),
-		EUICCInfo1: hex.EncodeToString(info1.Bytes()),
-		EUICCInfo2: hex.EncodeToString(info2.Bytes()),
+		EUICCInfo1: hex.EncodeToString(info1Bytes),
+		EUICCInfo2: hex.EncodeToString(info2Bytes),
 	})
 }
 
 func handleChipInfo(client *lpa.Client) {
-	// Get chip info using library's ChipInfo function
-	chipInfo, err := client.ChipInfo()
+	// Aggregate chip info from low-level ES10 calls (local helper).
+	chipInfo, err := getChipInfo(client)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
@@ -645,14 +656,10 @@ func handleNickname(client *lpa.Client) {
 }
 
 func handleDownload(client *lpa.Client) {
-	var (
-		activationCode          = flag.String("code", "", "Activation code (LPA:1$smdp.io$MATCHING-ID)")
-		confirmationCodeRequired = flag.Bool("confirmation-code", true, "Profile requires confirmation code")
-	)
-
 	downloadFlags := flag.NewFlagSet("download", flag.ExitOnError)
-	downloadFlags.StringVar(activationCode, "code", "", "Activation code")
-	downloadFlags.BoolVar(confirmationCodeRequired, "confirmation-code", true, "Profile requires confirmation code")
+	activationCode := downloadFlags.String("code", "", "Activation code (LPA:1$smdp.io$MATCHING-ID)")
+	imei := downloadFlags.String("imei", "", "Device IMEI (required by upstream)")
+	confirmationCode := downloadFlags.String("confirmation-code", "", "Profile confirmation code")
 	downloadFlags.Parse(flag.Args()[1:])
 
 	if *activationCode == "" {
@@ -660,72 +667,83 @@ func handleDownload(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	err := client.DownloadProfile(*activationCode, *confirmationCodeRequired)
-	if err != nil {
+	ac := new(lpa.ActivationCode)
+	if err := ac.UnmarshalText([]byte(*activationCode)); err != nil {
+		outputError(fmt.Errorf("invalid activation code: %w", err))
+		os.Exit(1)
+	}
+	ac.IMEI = *imei
+	ac.ConfirmationCode = *confirmationCode
+
+	if _, err := client.DownloadProfile(context.Background(), ac, nil); err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
 
 	outputSuccess(map[string]string{
-		"message": "profile downloaded successfully",
+		"message":         "profile downloaded successfully",
 		"activation_code": *activationCode,
 	})
 }
 
 func handleDiscovery(client *lpa.Client) {
-	var server = flag.String("server", "", "SM-DS server address (default: GSMA production)")
-
 	discoveryFlags := flag.NewFlagSet("discovery", flag.ExitOnError)
-	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
+	server := discoveryFlags.String("server", "", "SM-DS server address")
+	imei := discoveryFlags.String("imei", "", "Device IMEI")
 	discoveryFlags.Parse(flag.Args()[1:])
 
-	// Prepare SM-DS address parameter
 	var smdsAddr *string
 	if *server != "" {
 		smdsAddr = server
-	} else {
-		smdsAddr = nil // Use default GSMA SM-DS
 	}
 
-	// Use library's DiscoverProfiles function with correct API
-	profiles, err := client.DiscoverProfiles(smdsAddr)
+	profiles, err := discoverProfiles(client, smdsAddr, imeiBytes(*imei))
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
 
-	// Convert to response format
 	response := make([]DiscoveryResponse, len(profiles))
 	for i, profile := range profiles {
 		response[i] = DiscoveryResponse{
 			EventID: profile.EventID,
-			Address: profile.SmdpAddress, // Correct field name (lowercase 'm')
+			Address: profile.SMDPAddress,
 		}
 	}
 
 	outputSuccess(response)
 }
 
-func handleDiscoverDownload(client *lpa.Client) {
-	var server = flag.String("server", "", "SM-DS server address (default: GSMA production)")
+// imeiBytes converts an IMEI string to bytes, or nil when empty.
+func imeiBytes(imei string) []byte {
+	if imei == "" {
+		return nil
+	}
+	return []byte(imei)
+}
 
+func handleDiscoverDownload(client *lpa.Client) {
 	discoveryFlags := flag.NewFlagSet("discover-download", flag.ExitOnError)
-	discoveryFlags.StringVar(server, "server", "", "SM-DS server address")
+	server := discoveryFlags.String("server", "", "SM-DS server address")
+	imei := discoveryFlags.String("imei", "", "Device IMEI (required by upstream for download)")
 	discoveryFlags.Parse(flag.Args()[1:])
 
-	// Prepare SM-DS address parameter
 	var smdsAddr *string
 	if *server != "" {
 		smdsAddr = server
-	} else {
-		smdsAddr = nil // Use default GSMA SM-DS
 	}
 
-	// Use library's DiscoverAndDownload function with correct API
-	err := client.DiscoverAndDownload(smdsAddr)
+	downloaded, err := discoverAndDownload(client, smdsAddr, imeiBytes(*imei))
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
+	}
+
+	if !downloaded {
+		outputSuccess(map[string]string{
+			"message": "no profiles available for download",
+		})
+		return
 	}
 
 	outputSuccess(map[string]string{
@@ -734,7 +752,7 @@ func handleDiscoverDownload(client *lpa.Client) {
 }
 
 func handleNotifications(client *lpa.Client) {
-	notifications, err := client.ListNotification(sgp22.NotificationAll)
+	notifications, err := client.ListNotification()
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
@@ -743,9 +761,9 @@ func handleNotifications(client *lpa.Client) {
 	response := make([]NotificationResponse, 0, len(notifications))
 	for _, n := range notifications {
 		response = append(response, NotificationResponse{
-			SequenceNumber:             n.SeqNumber,
+			SequenceNumber:             int(n.SequenceNumber),
 			ProfileManagementOperation: int(n.ProfileManagementOperation),
-			Address:                    n.NotificationAddress,
+			Address:                    n.Address,
 			ICCID:                      hex.EncodeToString(n.ICCID),
 		})
 	}
@@ -765,7 +783,7 @@ func handleNotificationRemove(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	if err := client.RemoveNotificationFromList(seqNum); err != nil {
+	if err := client.RemoveNotificationFromList(sgp22.SequenceNumber(seqNum)); err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
@@ -788,7 +806,17 @@ func handleNotificationHandle(client *lpa.Client) {
 		os.Exit(1)
 	}
 
-	if err := client.HandleNotification(seqNum); err != nil {
+	// Upstream HandleNotification takes a *PendingNotification; retrieve it first.
+	pending, err := client.RetrieveNotificationList(sgp22.SequenceNumber(seqNum))
+	if err != nil {
+		outputError(err)
+		os.Exit(1)
+	}
+	if len(pending) == 0 {
+		outputError(fmt.Errorf("notification with sequence number %d not found", seqNum))
+		os.Exit(1)
+	}
+	if err := client.HandleNotification(pending[0]); err != nil {
 		outputError(err)
 		os.Exit(1)
 	}
@@ -800,11 +828,8 @@ func handleNotificationHandle(client *lpa.Client) {
 }
 
 func handleAutoNotification(client *lpa.Client) {
-	// Use the library's ProcessAllNotifications function
-	results, err := client.ProcessAllNotifications(&lpa.ProcessNotificationsOptions{
-		AutoRemove:      true,
-		ContinueOnError: true,
-	})
+	// Process all pending notifications (local helper).
+	results, err := processAllNotifications(client, true, true)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)
@@ -856,14 +881,8 @@ func handleNotificationProcess(client *lpa.Client) {
 		sequenceNumbers = append(sequenceNumbers, sgp22.SequenceNumber(seqNum))
 	}
 
-	// Use the library's ProcessNotifications function
-	results, err := client.ProcessNotifications(
-		&lpa.ProcessNotificationsOptions{
-			AutoRemove:      true,
-			ContinueOnError: true,
-		},
-		sequenceNumbers...,
-	)
+	// Process the given notifications (local helper).
+	results, err := processNotifications(client, true, true, sequenceNumbers...)
 	if err != nil {
 		outputError(err)
 		os.Exit(1)

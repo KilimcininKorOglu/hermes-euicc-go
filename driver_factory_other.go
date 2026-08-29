@@ -8,16 +8,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
+	"github.com/damonto/euicc-go/driver"
 )
 
 // newQMIDriver returns an error on non-Linux platforms (QMI is Linux-only)
-func newQMIDriver(device string, slot uint8) (apdu.SmartCardChannel, error) {
+func newQMIDriver(device string, slot uint8) (driver.SmartCardChannel, error) {
 	return nil, fmt.Errorf("QMI driver not supported on this platform (Linux only)")
 }
 
 // newMBIMDriver returns an error on non-Linux platforms (MBIM is Linux-only)
-func newMBIMDriver(device string, slot uint8) (apdu.SmartCardChannel, error) {
+func newMBIMDriver(device string, slot uint8) (driver.SmartCardChannel, error) {
 	return nil, fmt.Errorf("MBIM driver not supported on this platform (Linux only)")
 }
 

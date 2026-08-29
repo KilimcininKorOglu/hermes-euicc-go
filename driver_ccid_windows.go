@@ -8,17 +8,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/driver/ccid"
+	"github.com/damonto/euicc-go/driver"
+	"github.com/damonto/euicc-go/driver/ccid"
 )
 
 // initCCIDDriver initializes CCID driver using winscard.dll (Windows)
 // Windows has built-in smart card support via winscard.dll
-func initCCIDDriver() (apdu.SmartCardChannel, error) {
-	ch, err := ccid.New()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize CCID: %w (Smart Card service may not be running)", err)
-	}
+func initCCIDDriver() (driver.SmartCardChannel, error) {
+	ch := ccid.New()
 
 	readers, err := ch.ListReaders()
 	if err != nil {

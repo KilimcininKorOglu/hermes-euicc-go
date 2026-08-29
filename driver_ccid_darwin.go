@@ -8,17 +8,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/driver/ccid"
+	"github.com/damonto/euicc-go/driver"
+	"github.com/damonto/euicc-go/driver/ccid"
 )
 
 // initCCIDDriver initializes CCID driver using PC/SC framework (macOS)
 // macOS has built-in PC/SC support via CryptoTokenKit framework
-func initCCIDDriver() (apdu.SmartCardChannel, error) {
-	ch, err := ccid.New()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize CCID: %w (PC/SC framework may not be available)", err)
-	}
+func initCCIDDriver() (driver.SmartCardChannel, error) {
+	ch := ccid.New()
 
 	readers, err := ch.ListReaders()
 	if err != nil {

@@ -8,16 +8,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/KilimcininKorOglu/euicc-go/apdu"
-	"github.com/KilimcininKorOglu/euicc-go/driver/ccid"
+	"github.com/damonto/euicc-go/driver"
+	"github.com/damonto/euicc-go/driver/ccid"
 )
 
 // initCCIDDriver initializes CCID driver using pcscd (Linux)
-func initCCIDDriver() (apdu.SmartCardChannel, error) {
-	ch, err := ccid.New()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize CCID: %w (is pcscd running?)", err)
-	}
+func initCCIDDriver() (driver.SmartCardChannel, error) {
+	ch := ccid.New()
 
 	readers, err := ch.ListReaders()
 	if err != nil {
