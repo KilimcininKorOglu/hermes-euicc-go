@@ -1,4 +1,4 @@
-module github.com/KilimcininKorOglu/euicc-go/app
+module github.com/KilimcininKorOglu/hermes-euicc-go
 
 go 1.26.3
 

@@ -27,14 +27,14 @@ echo -e "${NC}\n"
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
-BINARY_NAME="hermes-euicc"
+BINARY_NAME="hermes-euicc-go"
 PKG_VERSION="1.0.0"  # Package version (manually update for new versions)
 PKG_RELEASE=$(git rev-list --count HEAD 2>/dev/null || echo "1")  # Auto-increment with git commits
 BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}-${PKG_RELEASE}"  # Version-release specific directory
 GO_VERSION="1.24.0"  # Required Go version
 
 # Package metadata
-PKG_NAME="hermes-euicc"
+PKG_NAME="hermes-euicc-go"
 PKG_LICENSE="MIT"
 PKG_MAINTAINER="Kilimcinin Kör Oğlu <k@keremgok.tr>"
 
@@ -435,15 +435,15 @@ create_ipk() {
     mkdir -p "${IPK_CONTROL_DIR}" "${IPK_DATA_DIR}/usr/bin"
 
     # Copy binary
-    cp "${BINARY_PATH}" "${IPK_DATA_DIR}/usr/bin/hermes-euicc"
-    chmod 755 "${IPK_DATA_DIR}/usr/bin/hermes-euicc"
+    cp "${BINARY_PATH}" "${IPK_DATA_DIR}/usr/bin/hermes-euicc-go"
+    chmod 755 "${IPK_DATA_DIR}/usr/bin/hermes-euicc-go"
 
     # Create control file
     cat > "${IPK_CONTROL_DIR}/control" << EOF
 Package: ${PKG_NAME}
 Version: ${PKG_VERSION}-${PKG_RELEASE}
 Depends: libc, coreutils, coreutils-timeout
-Provides: hermes-euicc
+Provides: hermes-euicc-go
 Section: utils
 Architecture: ${ARCH}
 Installed-Size: $(du -sb "${IPK_DATA_DIR}" | cut -f1)
@@ -488,7 +488,7 @@ else
     echo "Your existing configuration has been preserved."
 fi
 
-echo "Usage: hermes-euicc --help"
+echo "Usage: hermes-euicc-go --help"
 exit 0
 POSTINST_EOF
     chmod 755 "${IPK_CONTROL_DIR}/postinst"
@@ -581,11 +581,11 @@ echo -e "${BLUE}  Created ${IPK_COUNT} IPK packages in:${NC} ${BUILD_DIR}/"
 echo ""
 echo -e "${YELLOW}Installation:${NC}"
 echo -e "  opkg update"
-echo -e "  opkg install /tmp/hermes-euicc_*.ipk"
+echo -e "  opkg install /tmp/hermes-euicc-go_*.ipk"
 echo ""
 echo -e "${YELLOW}Usage:${NC}"
-echo -e "  hermes-euicc --help"
-echo -e "  hermes-euicc list"
+echo -e "  hermes-euicc-go --help"
+echo -e "  hermes-euicc-go list"
 echo ""
 
 echo -e "${GREEN}✓ All builds and packages completed successfully!${NC}\n"
