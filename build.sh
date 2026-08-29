@@ -28,7 +28,7 @@ echo -e "${NC}\n"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="${SCRIPT_DIR}"
 BINARY_NAME="hermes-euicc-go"
-PKG_VERSION="1.0.0"  # Package version (manually update for new versions)
+PKG_VERSION="${PKG_VERSION:-1.0.0}"  # Package version; override via env (CI passes the tag)
 PKG_RELEASE=$(git rev-list --count HEAD 2>/dev/null || echo "1")  # Auto-increment with git commits
 BUILD_DIR="${SCRIPT_DIR}/build/${PKG_VERSION}-${PKG_RELEASE}"  # Version-release specific directory
 GO_VERSION="1.24.0"  # Required Go version
@@ -589,21 +589,3 @@ echo -e "  hermes-euicc-go list"
 echo ""
 
 echo -e "${GREEN}✓ All builds and packages completed successfully!${NC}\n"
-
-# =============================================================================
-# Optional: publish IPKs to the shared openwrt-packages feed
-# Enable with:  PUBLISH_FEED=1 ./build.sh
-# Routes each IPK into the matching arch dir and regenerates indexes; it does NOT
-# commit or push (review, then commit & push inside the feed repo yourself).
-# =============================================================================
-if [ "${PUBLISH_FEED:-0}" = "1" ]; then
-    FEED_DIR="${SCRIPT_DIR}/../openwrt-packages"
-    if [ -x "${FEED_DIR}/import.sh" ]; then
-        echo -e "${BLUE}Publishing IPKs to shared feed: ${FEED_DIR}${NC}"
-        "${FEED_DIR}/import.sh" "${BUILD_DIR}"/${PKG_NAME}_*.ipk || true
-        echo -e "${YELLOW}Feed updated. Review, then commit & push in ${FEED_DIR}.${NC}"
-    else
-        echo -e "${YELLOW}PUBLISH_FEED=1 but ${FEED_DIR}/import.sh not found; skipping feed publish.${NC}"
-    fi
-    echo ""
-fi
